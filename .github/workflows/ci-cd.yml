@@ -1,0 +1,77 @@
+name: CI/CD Pipeline (Mobile & APK Release)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: write
+
+jobs:
+  test-and-build:
+    name: Test & Build Integrity
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze & Lint
+        run: flutter analyze
+
+      - name: Run Test Suite
+        run: flutter test
+
+      - name: Build Release APK
+        run: flutter build apk --release
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+  deploy:
+    name: Publish Release APK
+    needs: test-and-build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download APK Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-release-apk
+          path: release-build
+
+      - name: Create GitHub Release with Sideload APK
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: release-v${{ github.run_number }}
+          name: Release v${{ github.run_number }}
+          body: |
+            Automated build on merge to `main`.
+            
+            ### 📱 Download & Sideload
+            Direct APK download: [app-release.apk](app-release.apk)
+          files: release-build/app-release.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
