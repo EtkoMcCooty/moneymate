@@ -24,6 +24,9 @@
 **/ios/Flutter/flutter_assets/
 **/ios/Runner/GeneratedPluginRegistrant.*
 
+# Windows
+**/windows/flutter/generated_*
+
 # IDEs & OS
 .idea/
 *.iml
