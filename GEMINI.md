@@ -13,7 +13,7 @@
 - Maintain documentation integrity and preserve docstrings.
 - **Architecture Pattern:** Follow **Vertical Slice Architecture** (feature folders under `lib/features/<slice>/` encapsulating UI views, state/viewmodels, and domain/data logic), with shared foundation code under `lib/core/`.
 - Adhere strictly to project architecture and contracts documented in `docs/ARCHITECTURE.md`.
-- **Tone & Plain Language (No Jargon):** All user-facing UI labels, placeholders, tooltips, dialogs, and messages must avoid financial, accounting, and technical jargon (e.g. avoid words like *"Ledger"*, *"Historical Trends"*, *"Pay Cycle Offset"*, *"Amortization"*, or *"Disposition"*). Use simple, friendly, everyday plain language instead (e.g. use *"Monthly Tracker"* / *"Bills & Expenses"*, *"Insights"* / *"Your Progress"*, *"Payday"* / *"Pay Period"*, *"Money Left Over"*).
+- **Tone & Plain Language (No Jargon):** All user-facing UI labels, placeholders, tooltips, dialogs, and messages must avoid financial, accounting, and technical jargon (e.g. avoid words like *"Ledger"*, *"Historical Trends"*, *"Pay Cycle Offset"*, *"Amortization"*, or *"Disposition"*). Use simple, friendly, everyday plain language instead (e.g. use *"Monthly Tracker"* / *"Bills & Expenses"*, *"Insights"* / *"Your Progress"*, *"Payday"* / *"Pay Period"*). Note: *"Disposable Income"* is explicitly approved and encouraged to match spreadsheet conventions.
 - Ensure all business logic and financial calculations (disposable income, debt balance countdown, cycle date offsets) are backed by unit tests.
 - Keep changes atomic, clean, and tested.
 
