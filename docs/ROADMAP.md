@@ -1,6 +1,6 @@
 # Project Roadmap & Execution Ledger (Vertical Slice Architecture)
 
-> **Overall Progress:** 1 / 13 tasks completed (8%)  
+> **Overall Progress:** 2 / 13 tasks completed (15%)  
 > **Last Updated:** 2026-10-25  
 
 ---
@@ -19,7 +19,7 @@
 
 ### Milestone 1: App Shell, DB & Auto-Update Foundation
 - [x] [app-scaffold] App Shell & Theme: Initialize Flutter project, Riverpod, AppTheme (colors, typography, GBP £ currency formatting default), and bottom navigation shell (Tracker, Dashboard, Settings).
-- [ ] [db-foundation] Drift SQLite Database: Set up Drift database tables (trackers, categories, items, entries, debts, settings), DAOs, and database smoke unit tests.
+- [x] [db-foundation] Drift SQLite Database: Set up Drift database tables (trackers, categories, items, entries, debts, settings), DAOs, and database smoke unit tests.
 - [ ] [github-updater-slice] In-App Auto-Updater: GitHub Releases API client comparing local vs remote semver, update notification dialog, and APK installer trigger for instant continuous delivery.
 
 ### Milestone 2: Settings & Pay Cycle Configuration Slice (End-to-End)
