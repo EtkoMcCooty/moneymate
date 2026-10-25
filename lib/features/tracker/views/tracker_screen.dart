@@ -22,14 +22,14 @@ class TrackerScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Finance Tracker Ledger',
+              'Monthly Tracker',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Monthly entries, categories, and disposable cash',
+              'Track your income, bills, and spending',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),

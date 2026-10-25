@@ -22,14 +22,14 @@ class DashboardScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Financial Analytics',
+              'Insights',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Historical trends, savings ratios, and debt countdown',
+              'See how your spending, savings, and debts change over time',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),

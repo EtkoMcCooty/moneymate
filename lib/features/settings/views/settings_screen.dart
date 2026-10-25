@@ -29,7 +29,7 @@ class SettingsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Pay cycle offset, currency symbol (£ default), and categories',
+              'Set your payday, currency, and spending categories',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
