@@ -28,11 +28,15 @@ class DashboardScreen extends StatelessWidget {
                   ),
             ),
             const SizedBox(height: 8),
-            Text(
-              'See how your spending, savings, and debts change over time',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Text(
+                'See how your spending, savings, and debts change over time',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+              ),
             ),
           ],
         ),

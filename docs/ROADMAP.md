@@ -1,6 +1,6 @@
 # Project Roadmap & Execution Ledger (Vertical Slice Architecture)
 
-> **Overall Progress:** 2 / 13 tasks completed (15%)  
+> **Overall Progress:** 3 / 13 tasks completed (23%)  
 > **Last Updated:** 2026-10-25  
 
 ---
@@ -20,7 +20,7 @@
 ### Milestone 1: App Shell, DB & Auto-Update Foundation
 - [x] [app-scaffold] App Shell & Theme: Initialize Flutter project, Riverpod, AppTheme (colors, typography, GBP £ currency formatting default), and bottom navigation shell (Tracker, Dashboard, Settings).
 - [x] [db-foundation] Drift SQLite Database: Set up Drift database tables (trackers, categories, items, entries, debts, settings), DAOs, and database smoke unit tests.
-- [ ] [github-updater-slice] In-App Auto-Updater: GitHub Releases API client comparing local vs remote semver, update notification dialog, and APK installer trigger for instant continuous delivery.
+- [x] [github-updater-slice] In-App Auto-Updater: GitHub Releases API client comparing local vs remote semver, update notification dialog, and APK installer trigger for instant continuous delivery.
 
 ### Milestone 2: Settings & Pay Cycle Configuration Slice (End-to-End)
 - [ ] [pay-cycle-engine] Pay Cycle Math Engine: Domain service calculating custom pay period date spans (e.g. 15th to 14th) and period key mappings with comprehensive unit tests.
