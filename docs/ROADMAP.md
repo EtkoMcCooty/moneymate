@@ -1,6 +1,6 @@
 # Project Roadmap & Execution Ledger (Vertical Slice Architecture)
 
-> **Overall Progress:** 5 / 13 tasks completed (38%)  
+> **Overall Progress:** 6 / 13 tasks completed (46%)  
 > **Last Updated:** 2026-10-26  
 
 ---
@@ -27,7 +27,7 @@
 - [x] [settings-slice] Settings View & State: Settings screen, Riverpod notifier, and Drift integration for pay cycle start day, currency format/symbol (£ default), and category management.
 
 ### Milestone 3: Tracker Ledger & In-Line Customization Slice (Core Value - End-to-End)
-- [ ] [tracker-ledger-ui] Tracker Ledger Grid: Interactive ledger displaying Income, Household, Personal, Other, Debts, Savings, and Investments with collapsible sections.
+- [x] [tracker-ledger-ui] Tracker Ledger Grid: Interactive ledger displaying Income, Household, Personal, Other, Debts, Savings, and Investments with collapsible sections.
 - [ ] [tracker-item-crud] Item Management & Due Dates: Create, update, archive items with optional recurring due day tags (e.g., Rent on 29th) and debt balance tracking.
 - [ ] [tracker-entry-editor] In-Line Entry & Note Editor: Inline monthly cell editing, context note modals (e.g. "[1] Half Nursery fees"), and instant recalculation of totals and disposable income.
 
