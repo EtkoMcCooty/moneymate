@@ -68,23 +68,26 @@ jobs:
             echo "tag=pr-${{ github.event.pull_request.number }}-v${{ github.run_number }}" >> $GITHUB_OUTPUT
             echo "name=PR #${{ github.event.pull_request.number }} Preview (Build ${{ github.run_number }})" >> $GITHUB_OUTPUT
             echo "prerelease=true" >> $GITHUB_OUTPUT
+            echo "target_repo=${{ github.repository }}" >> $GITHUB_OUTPUT
           else
-            echo "tag=release-v${{ github.run_number }}" >> $GITHUB_OUTPUT
-            echo "name=Release v${{ github.run_number }}" >> $GITHUB_OUTPUT
+            echo "tag=v0.1.0+${{ github.run_number }}" >> $GITHUB_OUTPUT
+            echo "name=Release v0.1.0+${{ github.run_number }}" >> $GITHUB_OUTPUT
             echo "prerelease=false" >> $GITHUB_OUTPUT
+            echo "target_repo=EtkoMcCooty/moneymate-releases" >> $GITHUB_OUTPUT
           fi
 
       - name: Create GitHub Release with Sideload APK
         uses: softprops/action-gh-release@v2
         with:
+          repository: ${{ steps.release_info.outputs.target_repo }}
           tag_name: ${{ steps.release_info.outputs.tag }}
           name: ${{ steps.release_info.outputs.name }}
           prerelease: ${{ steps.release_info.outputs.prerelease == 'true' }}
           body: |
-            Automated build for ${{ github.event_name == 'pull_request' && format('PR #{0}', github.event.pull_request.number) || 'merge to main' }}.
+            Automated MoneyMate build for ${{ github.event_name == 'pull_request' && format('PR #{0}', github.event.pull_request.number) || 'official release' }}.
             
             ### 📱 Download & Sideload
             Direct APK download: [app-release.apk](app-release.apk)
           files: release-build/app-release.apk
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASES_PAT || secrets.GITHUB_TOKEN }}
