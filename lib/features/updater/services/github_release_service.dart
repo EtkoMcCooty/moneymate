@@ -11,7 +11,7 @@ class GitHubReleaseService {
   GitHubReleaseService({
     http.Client? client,
     this.owner = 'EtkoMcCooty',
-    this.repo = 'moneymate',
+    this.repo = 'moneymate-releases',
   }) : _client = client ?? http.Client();
 
   /// Fetches the latest published release from GitHub.
@@ -50,22 +50,27 @@ class GitHubReleaseService {
     final cleanCurrent = cleanVersion(currentVersion);
     final cleanRemote = cleanVersion(remoteVersion);
 
-    final currentParts = cleanCurrent.split('.').map((p) => int.tryParse(p) ?? 0).toList();
-    final remoteParts = cleanRemote.split('.').map((p) => int.tryParse(p) ?? 0).toList();
+    final currentHasSemver = cleanCurrent.contains('.');
+    final remoteHasSemver = cleanRemote.contains('.');
 
-    while (currentParts.length < 3) {
-      currentParts.add(0);
-    }
-    while (remoteParts.length < 3) {
-      remoteParts.add(0);
+    if (currentHasSemver && remoteHasSemver) {
+      final currentParts = cleanCurrent.split('.').map((p) => int.tryParse(p) ?? 0).toList();
+      final remoteParts = cleanRemote.split('.').map((p) => int.tryParse(p) ?? 0).toList();
+
+      while (currentParts.length < 3) {
+        currentParts.add(0);
+      }
+      while (remoteParts.length < 3) {
+        remoteParts.add(0);
+      }
+
+      for (var i = 0; i < 3; i++) {
+        if (remoteParts[i] > currentParts[i]) return true;
+        if (remoteParts[i] < currentParts[i]) return false;
+      }
     }
 
-    for (var i = 0; i < 3; i++) {
-      if (remoteParts[i] > currentParts[i]) return true;
-      if (remoteParts[i] < currentParts[i]) return false;
-    }
-
-    // If semver is identical, check build number if present
+    // Compare build numbers if semvers are equal or if one/both is a pure build number
     final currentBuild = _extractBuildNumber(currentVersion);
     final remoteBuild = _extractBuildNumber(remoteVersion);
 
@@ -77,8 +82,14 @@ class GitHubReleaseService {
   }
 
   static int? _extractBuildNumber(String version) {
-    if (!version.contains('+')) return null;
-    final buildPart = version.split('+').last;
-    return int.tryParse(buildPart);
+    if (version.contains('+')) {
+      final buildPart = version.split('+').last;
+      return int.tryParse(buildPart);
+    }
+    final cleaned = cleanVersion(version);
+    if (!cleaned.contains('.')) {
+      return int.tryParse(cleaned);
+    }
+    return null;
   }
 }
