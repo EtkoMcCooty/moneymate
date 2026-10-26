@@ -1,6 +1,6 @@
 # Project Roadmap & Execution Ledger (Vertical Slice Architecture)
 
-> **Overall Progress:** 4 / 13 tasks completed (31%)  
+> **Overall Progress:** 5 / 13 tasks completed (38%)  
 > **Last Updated:** 2026-10-26  
 
 ---
@@ -24,7 +24,7 @@
 
 ### Milestone 2: Settings & Pay Cycle Configuration Slice (End-to-End)
 - [x] [pay-cycle-engine] Pay Cycle Math Engine: Domain service calculating custom pay period date spans (e.g. 15th to 14th) and period key mappings with comprehensive unit tests.
-- [ ] [settings-slice] Settings View & State: Settings screen, Riverpod notifier, and Drift integration for pay cycle start day, currency format/symbol (£ default), and category management.
+- [x] [settings-slice] Settings View & State: Settings screen, Riverpod notifier, and Drift integration for pay cycle start day, currency format/symbol (£ default), and category management.
 
 ### Milestone 3: Tracker Ledger & In-Line Customization Slice (Core Value - End-to-End)
 - [ ] [tracker-ledger-ui] Tracker Ledger Grid: Interactive ledger displaying Income, Household, Personal, Other, Debts, Savings, and Investments with collapsible sections.

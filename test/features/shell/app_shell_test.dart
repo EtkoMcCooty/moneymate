@@ -1,14 +1,30 @@
+import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:moneymate/app.dart';
+import 'package:moneymate/core/database/app_database.dart';
+import 'package:moneymate/core/database/database_provider.dart';
 
 void main() {
+  late AppDatabase db;
+
+  setUp(() {
+    db = AppDatabase(NativeDatabase.memory());
+  });
+
+  tearDown(() async {
+    await db.close();
+  });
+
   group('App Shell & Navigation', () {
     testWidgets('renders navigation destinations and switches tabs', (tester) async {
       await tester.pumpWidget(
-        const ProviderScope(
-          child: MoneyMateApp(),
+        ProviderScope(
+          overrides: [
+            appDatabaseProvider.overrideWithValue(db),
+          ],
+          child: const MoneyMateApp(),
         ),
       );
 
