@@ -5,6 +5,7 @@ import '../../../core/utils/currency_formatter.dart';
 import '../../../core/utils/pay_cycle_service.dart';
 import '../models/tracker_ledger_models.dart';
 import '../state/tracker_ledger_notifier.dart';
+import 'item_form_dialog.dart';
 
 /// Screen displaying the monthly ledger and finance tracker grid with
 /// collapsible category sections and disposable income calculations.
@@ -19,6 +20,56 @@ class TrackerScreen extends ConsumerWidget {
     );
     final targetKey = delta < 0 ? adjacent.first : adjacent.last;
     ref.read(trackerLedgerNotifierProvider.notifier).selectPeriod(targetKey);
+  }
+
+  void _openItemDialog(
+    BuildContext context,
+    WidgetRef ref,
+    int categoryId, [
+    FinanceItemWithEntry? item,
+  ]) {
+    final state = ref.read(trackerLedgerNotifierProvider);
+    final categories = state.sections.map((s) => s.category).toList();
+    final notifier = ref.read(trackerLedgerNotifierProvider.notifier);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => ItemFormDialog(
+        categories: categories,
+        initialCategoryId: categoryId,
+        currencySymbol: state.currencySymbol,
+        itemToEdit: item,
+        onSave: ({
+          required int categoryId,
+          required String name,
+          int? dueDay,
+          double? totalPrincipal,
+          double? interestRate,
+        }) async {
+          if (item == null) {
+            await notifier.addItem(
+              categoryId: categoryId,
+              name: name,
+              dueDay: dueDay,
+              totalPrincipal: totalPrincipal,
+              interestRate: interestRate,
+            );
+          } else {
+            await notifier.updateItem(
+              itemId: item.item.id,
+              categoryId: categoryId,
+              name: name,
+              dueDay: dueDay,
+              totalPrincipal: totalPrincipal,
+              interestRate: interestRate,
+            );
+          }
+        },
+        onArchive: (itemId) async {
+          await notifier.archiveItem(itemId);
+        },
+      ),
+    );
   }
 
   static String _formatCategoryTypeLabel(String type) {
@@ -81,6 +132,8 @@ class TrackerScreen extends ConsumerWidget {
                     return _buildCategorySectionCard(
                         context, ref, section, ledgerState.currencySymbol);
                   }),
+
+
 
                   const SizedBox(height: 24),
                 ],
@@ -340,20 +393,68 @@ class TrackerScreen extends ConsumerWidget {
               );
               return ListTile(
                 dense: true,
+                onTap: () => _openItemDialog(
+                    context, ref, section.category.id, itemWithEntry),
                 title: Text(itemWithEntry.item.name),
-                subtitle: itemWithEntry.item.dueDay != null
-                    ? Text('Due ${itemWithEntry.item.dueDay}th of month')
-                    : (itemWithEntry.note != null
-                        ? Text(itemWithEntry.note!)
-                        : null),
+                subtitle: _buildItemSubtitle(
+                    context, itemWithEntry, currencySymbol),
+
+
+
+
+
                 trailing: Text(
                   amountStr,
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
               );
             }),
+          Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                key: Key('add_item_button_${section.category.name}'),
+                icon: const Icon(Icons.add, size: 18),
+                label: Text('Add ${section.category.name} Item'),
+                onPressed: () =>
+                    _openItemDialog(context, ref, section.category.id),
+              ),
+            ),
+          ),
+
         ],
       ),
+    );
+  }
+
+  Widget? _buildItemSubtitle(
+    BuildContext context,
+    FinanceItemWithEntry itemWithEntry,
+    String currencySymbol,
+  ) {
+    final parts = <String>[];
+    if (itemWithEntry.item.dueDay != null) {
+      parts.add('Due ${itemWithEntry.item.dueDay}th of month');
+    }
+    if (itemWithEntry.debtMetadata != null) {
+      final remainingFormatted = CurrencyFormatter.format(
+        itemWithEntry.debtMetadata!.totalPrincipal,
+        symbol: currencySymbol,
+      );
+      parts.add('Remaining balance: $remainingFormatted');
+    }
+    if (itemWithEntry.note != null && itemWithEntry.note!.isNotEmpty) {
+      parts.add(itemWithEntry.note!);
+    }
+
+    if (parts.isEmpty) return null;
+    return Text(
+      parts.join(' • '),
+      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
     );
   }
 

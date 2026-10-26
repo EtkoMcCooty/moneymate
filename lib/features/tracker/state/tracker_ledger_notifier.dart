@@ -173,6 +173,102 @@ class TrackerLedgerNotifier extends StateNotifier<TrackerLedgerState> {
 
     state = state.copyWith(sections: updatedSections);
   }
+
+  /// Adds a new finance item under [categoryId], with optional [dueDay] and debt metadata.
+  Future<void> addItem({
+    required int categoryId,
+    required String name,
+    int? dueDay,
+    double? totalPrincipal,
+    double? interestRate,
+  }) async {
+    try {
+      final itemId = await _db.into(_db.financeItems).insert(
+            FinanceItemsCompanion.insert(
+              categoryId: categoryId,
+              name: name,
+              dueDay: Value(dueDay),
+              isArchived: const Value(false),
+            ),
+          );
+
+      if (totalPrincipal != null || interestRate != null) {
+        await _db.into(_db.debtMetadata).insert(
+              DebtMetadataCompanion.insert(
+                itemId: itemId,
+                totalPrincipal: Value(totalPrincipal ?? 0.0),
+                interestRate: Value(interestRate ?? 0.0),
+              ),
+            );
+      }
+
+      await loadLedger(periodKey: state.selectedPeriodKey);
+    } catch (e) {
+      state = state.copyWith(errorMessage: 'Failed to add item: $e');
+    }
+  }
+
+  /// Updates an existing finance item and optional debt metadata.
+  Future<void> updateItem({
+    required int itemId,
+    required int categoryId,
+    required String name,
+    int? dueDay,
+    double? totalPrincipal,
+    double? interestRate,
+  }) async {
+    try {
+      await (_db.update(_db.financeItems)..where((i) => i.id.equals(itemId))).write(
+        FinanceItemsCompanion(
+          categoryId: Value(categoryId),
+          name: Value(name),
+          dueDay: Value(dueDay),
+        ),
+      );
+
+      if (totalPrincipal != null || interestRate != null) {
+        final existingMeta = await (_db.select(_db.debtMetadata)
+              ..where((d) => d.itemId.equals(itemId)))
+            .getSingleOrNull();
+
+        if (existingMeta != null) {
+          await (_db.update(_db.debtMetadata)..where((d) => d.itemId.equals(itemId))).write(
+            DebtMetadataCompanion(
+              totalPrincipal: Value(totalPrincipal ?? existingMeta.totalPrincipal),
+              interestRate: Value(interestRate ?? existingMeta.interestRate),
+            ),
+          );
+        } else {
+          await _db.into(_db.debtMetadata).insert(
+                DebtMetadataCompanion.insert(
+                  itemId: itemId,
+                  totalPrincipal: Value(totalPrincipal ?? 0.0),
+                  interestRate: Value(interestRate ?? 0.0),
+                ),
+              );
+        }
+      }
+
+      await loadLedger(periodKey: state.selectedPeriodKey);
+    } catch (e) {
+      state = state.copyWith(errorMessage: 'Failed to update item: $e');
+    }
+  }
+
+  /// Archives a finance item by setting [isArchived] to true so it is hidden from the active ledger.
+  Future<void> archiveItem(int itemId) async {
+    try {
+      await (_db.update(_db.financeItems)..where((i) => i.id.equals(itemId))).write(
+        const FinanceItemsCompanion(
+          isArchived: Value(true),
+        ),
+      );
+
+      await loadLedger(periodKey: state.selectedPeriodKey);
+    } catch (e) {
+      state = state.copyWith(errorMessage: 'Failed to archive item: $e');
+    }
+  }
 }
 
 /// Provider exposing [TrackerLedgerNotifier] and [TrackerLedgerState].
