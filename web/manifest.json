@@ -1,6 +1,6 @@
 {
-    "name": "moneymate",
-    "short_name": "moneymate",
+    "name": "MoneyMate",
+    "short_name": "MoneyMate",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

@@ -1,4 +1,7 @@
 analyzer:
+  errors:
+    deprecated_member_use: error
+    deprecated_member_use_from_same_package: error
   exclude:
     - build/**
     - android/**
