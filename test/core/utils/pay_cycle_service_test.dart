@@ -1,0 +1,83 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:moneymate/core/utils/pay_cycle_service.dart';
+
+void main() {
+  group('PayCycleService Math Engine', () {
+    group('getPeriodKey', () {
+      test('calculates correct period key for standard 1st of month cycle', () {
+        expect(PayCycleService.getPeriodKey(DateTime(2026, 1, 1), 1), equals('2026-01'));
+        expect(PayCycleService.getPeriodKey(DateTime(2026, 1, 15), 1), equals('2026-01'));
+        expect(PayCycleService.getPeriodKey(DateTime(2026, 1, 31), 1), equals('2026-01'));
+        expect(PayCycleService.getPeriodKey(DateTime(2026, 2, 1), 1), equals('2026-02'));
+      });
+
+      test('calculates correct period key for mid-month 15th cycle', () {
+        // Period 2026-01 spans Dec 15, 2025 to Jan 14, 2026
+        expect(PayCycleService.getPeriodKey(DateTime(2025, 12, 15), 15), equals('2026-01'));
+        expect(PayCycleService.getPeriodKey(DateTime(2025, 12, 31), 15), equals('2026-01'));
+        expect(PayCycleService.getPeriodKey(DateTime(2026, 1, 1), 15), equals('2026-01'));
+        expect(PayCycleService.getPeriodKey(DateTime(2026, 1, 14), 15), equals('2026-01'));
+
+        // Period 2026-02 starts on Jan 15, 2026
+        expect(PayCycleService.getPeriodKey(DateTime(2026, 1, 15), 15), equals('2026-02'));
+        expect(PayCycleService.getPeriodKey(DateTime(2026, 2, 14), 15), equals('2026-02'));
+      });
+
+      test('calculates correct period key for end of month (e.g. 28th)', () {
+        // Period 2026-02 spans Jan 28, 2026 to Feb 27, 2026
+        expect(PayCycleService.getPeriodKey(DateTime(2026, 1, 28), 28), equals('2026-02'));
+        expect(PayCycleService.getPeriodKey(DateTime(2026, 2, 27), 28), equals('2026-02'));
+        expect(PayCycleService.getPeriodKey(DateTime(2026, 2, 28), 28), equals('2026-03'));
+      });
+    });
+
+    group('getDateRange', () {
+      test('returns exact date span for 1st of month cycle', () {
+        final range = PayCycleService.getDateRange('2026-01', 1);
+        expect(range.start, equals(DateTime(2026, 1, 1, 0, 0, 0)));
+        expect(range.end, equals(DateTime(2026, 1, 31, 23, 59, 59, 999)));
+      });
+
+      test('returns exact date span for 15th cycle across year boundary', () {
+        final range = PayCycleService.getDateRange('2026-01', 15);
+        expect(range.start, equals(DateTime(2025, 12, 15, 0, 0, 0)));
+        expect(range.end, equals(DateTime(2026, 1, 14, 23, 59, 59, 999)));
+      });
+
+      test('safely clamps end of month for short months like February', () {
+        // Period 2026-03 with cycle start day 31: starts Feb 28, ends Mar 30
+        final range = PayCycleService.getDateRange('2026-03', 31);
+        expect(range.start.month, equals(2));
+        expect(range.start.day, equals(28)); // Non-leap year
+        expect(range.end.month, equals(3));
+        expect(range.end.day, equals(30));
+      });
+    });
+
+    group('Formatting & Navigation', () {
+      test('formats user friendly period title', () {
+        expect(PayCycleService.formatPeriodTitle('2026-01'), equals('January 2026'));
+        expect(PayCycleService.formatPeriodTitle('2026-11'), equals('November 2026'));
+      });
+
+      test('formats user friendly date span string', () {
+        final span1 = PayCycleService.formatPeriodDateSpan('2026-01', 1);
+        expect(span1, equals('1 Jan 2026 – 31 Jan 2026'));
+
+        final span15 = PayCycleService.formatPeriodDateSpan('2026-01', 15);
+        expect(span15, equals('15 Dec 2025 – 14 Jan 2026'));
+      });
+
+      test('generates adjacent period keys cleanly', () {
+        final keys = PayCycleService.generateAdjacentPeriodKeys('2026-02', countBefore: 2, countAfter: 2);
+        expect(keys, equals([
+          '2025-12',
+          '2026-01',
+          '2026-02',
+          '2026-03',
+          '2026-04',
+        ]));
+      });
+    });
+  });
+}
