@@ -33,8 +33,22 @@ class UpdatePromptDialog extends StatelessWidget {
     final urlString = release.apkUrl;
     if (urlString != null && urlString.isNotEmpty) {
       final uri = Uri.tryParse(urlString);
-      if (uri != null && await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (uri != null) {
+        try {
+          final launched = await launchUrl(
+            uri,
+            mode: LaunchMode.externalApplication,
+          );
+          if (!launched) {
+            await launchUrl(uri);
+          }
+        } catch (e) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Could not open download link: $e')),
+            );
+          }
+        }
       }
     }
     if (context.mounted) {
