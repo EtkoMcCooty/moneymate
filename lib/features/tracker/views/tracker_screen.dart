@@ -5,10 +5,11 @@ import '../../../core/utils/currency_formatter.dart';
 import '../../../core/utils/pay_cycle_service.dart';
 import '../models/tracker_ledger_models.dart';
 import '../state/tracker_ledger_notifier.dart';
+import 'entry_editor_dialog.dart';
 import 'item_form_dialog.dart';
 
 /// Screen displaying the monthly ledger and finance tracker grid with
-/// collapsible category sections and disposable income calculations.
+/// collapsible category sections, in-line entry amount/note editing, and disposable income calculations.
 class TrackerScreen extends ConsumerWidget {
   const TrackerScreen({super.key});
 
@@ -67,6 +68,40 @@ class TrackerScreen extends ConsumerWidget {
         },
         onArchive: (itemId) async {
           await notifier.archiveItem(itemId);
+        },
+      ),
+    );
+  }
+
+  void _openEntryDialog(
+    BuildContext context,
+    WidgetRef ref,
+    FinanceItemWithEntry itemWithEntry,
+    String categoryType,
+  ) {
+    final state = ref.read(trackerLedgerNotifierProvider);
+    final notifier = ref.read(trackerLedgerNotifierProvider.notifier);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => EntryEditorDialog(
+        itemName: itemWithEntry.item.name,
+        currencySymbol: state.currencySymbol,
+        initialAmount: itemWithEntry.amount,
+        initialExtraPayment: itemWithEntry.extraPayment,
+        initialNote: itemWithEntry.note,
+        isDebt: categoryType.toLowerCase() == 'debt',
+        onSave: ({
+          required double amount,
+          double? extraPayment,
+          String? note,
+        }) async {
+          await notifier.updateEntry(
+            itemId: itemWithEntry.item.id,
+            amount: amount,
+            extraPayment: extraPayment,
+            note: note,
+          );
         },
       ),
     );
@@ -132,8 +167,6 @@ class TrackerScreen extends ConsumerWidget {
                     return _buildCategorySectionCard(
                         context, ref, section, ledgerState.currencySymbol);
                   }),
-
-
 
                   const SizedBox(height: 24),
                 ],
@@ -398,14 +431,34 @@ class TrackerScreen extends ConsumerWidget {
                 title: Text(itemWithEntry.item.name),
                 subtitle: _buildItemSubtitle(
                     context, itemWithEntry, currencySymbol),
-
-
-
-
-
-                trailing: Text(
-                  amountStr,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
+                trailing: InkWell(
+                  key: Key('edit_entry_${itemWithEntry.item.id}'),
+                  borderRadius: BorderRadius.circular(8),
+                  onTap: () => _openEntryDialog(
+                    context,
+                    ref,
+                    itemWithEntry,
+                    section.category.categoryType,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8.0, vertical: 4.0),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          amountStr,
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(
+                          Icons.edit_note,
+                          size: 18,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               );
             }),
@@ -423,7 +476,6 @@ class TrackerScreen extends ConsumerWidget {
               ),
             ),
           ),
-
         ],
       ),
     );

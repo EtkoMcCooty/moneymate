@@ -269,6 +269,51 @@ class TrackerLedgerNotifier extends StateNotifier<TrackerLedgerState> {
       state = state.copyWith(errorMessage: 'Failed to archive item: $e');
     }
   }
+
+  /// Creates or updates an [ItemEntry] for [itemId] in [periodKey] (defaults to active period).
+  /// Saves amount, optional extra payment, and contextual note.
+  Future<void> updateEntry({
+    required int itemId,
+    required double amount,
+    double? extraPayment,
+    String? note,
+    String? periodKey,
+  }) async {
+    try {
+      final effectivePeriodKey = periodKey ?? state.selectedPeriodKey;
+      final existingEntry = await (_db.select(_db.itemEntries)
+            ..where((e) =>
+                e.itemId.equals(itemId) & e.periodKey.equals(effectivePeriodKey)))
+          .getSingleOrNull();
+
+      if (existingEntry != null) {
+        await (_db.update(_db.itemEntries)
+              ..where((e) =>
+                  e.itemId.equals(itemId) & e.periodKey.equals(effectivePeriodKey)))
+            .write(
+          ItemEntriesCompanion(
+            amount: Value(amount),
+            extraPayment: Value(extraPayment ?? existingEntry.extraPayment),
+            note: Value(note),
+          ),
+        );
+      } else {
+        await _db.into(_db.itemEntries).insert(
+              ItemEntriesCompanion.insert(
+                itemId: itemId,
+                periodKey: effectivePeriodKey,
+                amount: Value(amount),
+                extraPayment: Value(extraPayment ?? 0.0),
+                note: Value(note),
+              ),
+            );
+      }
+
+      await loadLedger(periodKey: state.selectedPeriodKey);
+    } catch (e) {
+      state = state.copyWith(errorMessage: 'Failed to update entry: $e');
+    }
+  }
 }
 
 /// Provider exposing [TrackerLedgerNotifier] and [TrackerLedgerState].
