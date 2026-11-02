@@ -30,7 +30,13 @@ class CategorySection {
     this.isCollapsed = false,
   });
 
-  double get totalAmount => items.fold(0.0, (sum, i) => sum + i.amount);
+  double get totalAmount => items.fold(
+        0.0,
+        (sum, i) =>
+            sum +
+            i.amount +
+            (category.categoryType.toLowerCase() == 'debt' ? i.extraPayment : 0.0),
+      );
 
   CategorySection copyWith({
     Category? category,

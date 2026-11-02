@@ -283,7 +283,8 @@ class TrackerLedgerNotifier extends StateNotifier<TrackerLedgerState> {
       final effectivePeriodKey = periodKey ?? state.selectedPeriodKey;
       final existingEntry = await (_db.select(_db.itemEntries)
             ..where((e) =>
-                e.itemId.equals(itemId) & e.periodKey.equals(effectivePeriodKey)))
+                e.itemId.equals(itemId) & e.periodKey.equals(effectivePeriodKey))
+            ..limit(1))
           .getSingleOrNull();
 
       if (existingEntry != null) {

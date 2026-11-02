@@ -99,6 +99,52 @@ void main() {
       expect(notifier.state.summary.totalExpenses, equals(1200.0));
       expect(notifier.state.summary.disposableIncome, equals(1800.0));
     });
+
+    test('debt extra payments are included in debt totals and disposable income, and can be cleared', () async {
+      final income =
+          notifier.state.sections.firstWhere((s) => s.category.name == 'Income');
+      final debts =
+          notifier.state.sections.firstWhere((s) => s.category.name == 'Debts');
+
+      await notifier.addItem(categoryId: income.category.id, name: 'Salary');
+      await notifier.addItem(categoryId: debts.category.id, name: 'Credit Card');
+
+      final salary = notifier.state.sections
+          .firstWhere((s) => s.category.id == income.category.id)
+          .items
+          .firstWhere((i) => i.item.name == 'Salary');
+      final debtItem = notifier.state.sections
+          .firstWhere((s) => s.category.id == debts.category.id)
+          .items
+          .firstWhere((i) => i.item.name == 'Credit Card');
+
+      await notifier.updateEntry(itemId: salary.item.id, amount: 2000.0);
+      // Min payment: 150, extra payment: 50 -> total paid: 200
+      await notifier.updateEntry(
+        itemId: debtItem.item.id,
+        amount: 150.0,
+        extraPayment: 50.0,
+      );
+
+      final updatedDebts = notifier.state.sections
+          .firstWhere((s) => s.category.id == debts.category.id);
+      expect(updatedDebts.totalAmount, equals(200.0));
+      expect(notifier.state.summary.totalDebtPayments, equals(200.0));
+      expect(notifier.state.summary.disposableIncome, equals(1800.0));
+
+      // Clear extra payment (pass 0.0)
+      await notifier.updateEntry(
+        itemId: debtItem.item.id,
+        amount: 150.0,
+        extraPayment: 0.0,
+      );
+
+      final clearedDebts = notifier.state.sections
+          .firstWhere((s) => s.category.id == debts.category.id);
+      expect(clearedDebts.totalAmount, equals(150.0));
+      expect(notifier.state.summary.totalDebtPayments, equals(150.0));
+      expect(notifier.state.summary.disposableIncome, equals(1850.0));
+    });
   });
 
   group('TrackerScreen - Entry & Note Editing UI Integration', () {

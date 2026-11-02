@@ -145,6 +145,29 @@ class TrackerScreen extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(
                     horizontal: 16.0, vertical: 12.0),
                 children: [
+                  if (ledgerState.errorMessage != null)
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 12.0),
+                      padding: const EdgeInsets.all(12.0),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.errorContainer,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.error_outline,
+                              color: Theme.of(context).colorScheme.onErrorContainer),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              ledgerState.errorMessage!,
+                              style: TextStyle(
+                                  color: Theme.of(context).colorScheme.onErrorContainer),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   // Period Navigation Bar
                   _buildPeriodHeader(context, ref, ledgerState),
                   const SizedBox(height: 12),
@@ -431,32 +454,35 @@ class TrackerScreen extends ConsumerWidget {
                 title: Text(itemWithEntry.item.name),
                 subtitle: _buildItemSubtitle(
                     context, itemWithEntry, currencySymbol),
-                trailing: InkWell(
-                  key: Key('edit_entry_${itemWithEntry.item.id}'),
-                  borderRadius: BorderRadius.circular(8),
-                  onTap: () => _openEntryDialog(
-                    context,
-                    ref,
-                    itemWithEntry,
-                    section.category.categoryType,
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8.0, vertical: 4.0),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          amountStr,
-                          style: const TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                        const SizedBox(width: 4),
-                        Icon(
-                          Icons.edit_note,
-                          size: 18,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ],
+                trailing: Tooltip(
+                  message: 'Edit amount and note',
+                  child: InkWell(
+                    key: Key('edit_entry_${itemWithEntry.item.id}'),
+                    borderRadius: BorderRadius.circular(8),
+                    onTap: () => _openEntryDialog(
+                      context,
+                      ref,
+                      itemWithEntry,
+                      section.category.categoryType,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8.0, vertical: 4.0),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            amountStr,
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(width: 4),
+                          Icon(
+                            Icons.edit_note,
+                            size: 18,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -496,6 +522,13 @@ class TrackerScreen extends ConsumerWidget {
         symbol: currencySymbol,
       );
       parts.add('Remaining balance: $remainingFormatted');
+    }
+    if (itemWithEntry.extraPayment > 0) {
+      final extraFormatted = CurrencyFormatter.format(
+        itemWithEntry.extraPayment,
+        symbol: currencySymbol,
+      );
+      parts.add('Extra paid: $extraFormatted');
     }
     if (itemWithEntry.note != null && itemWithEntry.note!.isNotEmpty) {
       parts.add(itemWithEntry.note!);

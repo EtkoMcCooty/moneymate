@@ -67,7 +67,7 @@ class _EntryEditorDialogState extends State<EntryEditorDialog> {
     try {
       final amount = double.tryParse(_amountController.text.trim()) ?? 0.0;
       final extraPayment = widget.isDebt
-          ? double.tryParse(_extraPaymentController.text.trim())
+          ? (double.tryParse(_extraPaymentController.text.trim()) ?? 0.0)
           : null;
       final noteText = _noteController.text.trim();
       final note = noteText.isEmpty ? null : noteText;
