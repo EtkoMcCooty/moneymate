@@ -11,7 +11,7 @@ class GitHubReleaseService {
   GitHubReleaseService({
     http.Client? client,
     this.owner = 'EtkoMcCooty',
-    this.repo = 'moneymate-releases',
+    this.repo = 'moneymate',
   }) : _client = client ?? http.Client();
 
   /// Fetches the latest published release from GitHub.

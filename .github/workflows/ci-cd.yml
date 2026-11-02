@@ -63,36 +63,23 @@ jobs:
 
       - name: Determine Release Tag & Metadata
         id: release_info
-        env:
-          HAS_PAT: ${{ secrets.RELEASES_PAT != '' }}
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             echo "tag=pr-${{ github.event.pull_request.number }}-v${{ github.run_number }}" >> $GITHUB_OUTPUT
             echo "name=PR #${{ github.event.pull_request.number }} Preview (Build ${{ github.run_number }})" >> $GITHUB_OUTPUT
             echo "prerelease=true" >> $GITHUB_OUTPUT
-            echo "target_repo=${{ github.repository }}" >> $GITHUB_OUTPUT
-            echo "commitish=${{ github.sha }}" >> $GITHUB_OUTPUT
           else
             echo "tag=v0.1.0+${{ github.run_number }}" >> $GITHUB_OUTPUT
             echo "name=Release v0.1.0+${{ github.run_number }}" >> $GITHUB_OUTPUT
             echo "prerelease=false" >> $GITHUB_OUTPUT
-            if [ "$HAS_PAT" = "true" ]; then
-              echo "target_repo=EtkoMcCooty/moneymate-releases" >> $GITHUB_OUTPUT
-              echo "commitish=main" >> $GITHUB_OUTPUT
-            else
-              echo "target_repo=${{ github.repository }}" >> $GITHUB_OUTPUT
-              echo "commitish=${{ github.sha }}" >> $GITHUB_OUTPUT
-            fi
           fi
 
       - name: Create GitHub Release with Sideload APK
         uses: softprops/action-gh-release@v2
         with:
-          token: ${{ secrets.RELEASES_PAT || secrets.GITHUB_TOKEN }}
-          repository: ${{ steps.release_info.outputs.target_repo }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           tag_name: ${{ steps.release_info.outputs.tag }}
           name: ${{ steps.release_info.outputs.name }}
-          target_commitish: ${{ steps.release_info.outputs.commitish }}
           prerelease: ${{ steps.release_info.outputs.prerelease == 'true' }}
           body: |
             Automated MoneyMate build for ${{ github.event_name == 'pull_request' && format('PR #{0}', github.event.pull_request.number) || 'official release' }}.

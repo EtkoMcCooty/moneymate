@@ -10,16 +10,16 @@ void main() {
         'name': 'Release v0.2.0 - New Features',
         'body': 'Here is what changed:\n- Added database support\n- Better performance',
         'published_at': '2026-10-25T18:00:00Z',
-        'html_url': 'https://github.com/EtkoMcCooty/moneymate-releases/releases/tag/release-v0.2.0',
+        'html_url': 'https://github.com/EtkoMcCooty/moneymate/releases/tag/release-v0.2.0',
         'assets': [
           {
             'name': 'app-release.apk',
-            'browser_download_url': 'https://github.com/EtkoMcCooty/moneymate-releases/releases/download/release-v0.2.0/app-release.apk',
+            'browser_download_url': 'https://github.com/EtkoMcCooty/moneymate/releases/download/release-v0.2.0/app-release.apk',
             'size': 45123992,
           },
           {
             'name': 'source.tar.gz',
-            'browser_download_url': 'https://github.com/EtkoMcCooty/moneymate-releases/archive/refs/tags/release-v0.2.0.tar.gz',
+            'browser_download_url': 'https://github.com/EtkoMcCooty/moneymate/archive/refs/tags/release-v0.2.0.tar.gz',
             'size': 120400,
           }
         ]
@@ -31,7 +31,13 @@ void main() {
       expect(release.version, equals('0.2.0'));
       expect(release.title, equals('Release v0.2.0 - New Features'));
       expect(release.notes, contains('Added database support'));
-      expect(release.apkUrl, equals('https://github.com/EtkoMcCooty/moneymate-releases/releases/download/release-v0.2.0/app-release.apk'));
+      expect(release.apkUrl, equals('https://github.com/EtkoMcCooty/moneymate/releases/download/release-v0.2.0/app-release.apk'));
+    });
+
+    test('default repo points to moneymate', () {
+      final service = GitHubReleaseService();
+      expect(service.owner, equals('EtkoMcCooty'));
+      expect(service.repo, equals('moneymate'));
     });
 
     test('isUpdateAvailable correctly compares semantic versions and build numbers', () {

@@ -30,6 +30,6 @@
 ## 5. Device Testing & In-App Auto-Updater
 - **Testing Workflow:** The user tests the application directly on physical mobile devices via the in-app "Check for updates" button in Settings (`lib/features/updater/`).
 - **Known Issue / Diagnostics:** The update check / install mechanism is currently reported as not working on physical devices. Priority must be given to ensuring:
-  1. The in-app updater properly queries releases from `EtkoMcCooty/moneymate-releases` and displays descriptive feedback if no releases exist or network fails.
+  1. The in-app updater properly queries releases from `EtkoMcCooty/moneymate` and displays descriptive feedback if no releases exist or network fails.
   2. Android `<queries>` permissions in `AndroidManifest.xml` allow `url_launcher` to launch browser download URLs (`https` / `http` intents) on Android 11+.
-  3. CI/CD release workflow reliably publishes release APK binaries to the public release repository.
+  3. CI/CD release workflow reliably publishes release APK binaries to the public repository.
