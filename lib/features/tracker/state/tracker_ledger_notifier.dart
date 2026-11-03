@@ -174,10 +174,11 @@ class TrackerLedgerNotifier extends StateNotifier<TrackerLedgerState> {
     state = state.copyWith(sections: updatedSections);
   }
 
-  /// Adds a new finance item under [categoryId], with optional [dueDay] and debt metadata.
+  /// Adds a new finance item under [categoryId], with optional [amount], [dueDay] and debt metadata.
   Future<void> addItem({
     required int categoryId,
     required String name,
+    double? amount,
     int? dueDay,
     double? totalPrincipal,
     double? interestRate,
@@ -198,6 +199,17 @@ class TrackerLedgerNotifier extends StateNotifier<TrackerLedgerState> {
                 itemId: itemId,
                 totalPrincipal: Value(totalPrincipal ?? 0.0),
                 interestRate: Value(interestRate ?? 0.0),
+              ),
+            );
+      }
+
+      if (amount != null && amount > 0) {
+        await _db.into(_db.itemEntries).insert(
+              ItemEntriesCompanion.insert(
+                itemId: itemId,
+                periodKey: state.selectedPeriodKey,
+                amount: Value(amount),
+                extraPayment: const Value(0.0),
               ),
             );
       }
@@ -267,6 +279,16 @@ class TrackerLedgerNotifier extends StateNotifier<TrackerLedgerState> {
       await loadLedger(periodKey: state.selectedPeriodKey);
     } catch (e) {
       state = state.copyWith(errorMessage: 'Failed to archive item: $e');
+    }
+  }
+
+  /// Permanently removes a finance item and cascades deletion of its entries and debt metadata.
+  Future<void> deleteItem(int itemId) async {
+    try {
+      await (_db.delete(_db.financeItems)..where((i) => i.id.equals(itemId))).go();
+      await loadLedger(periodKey: state.selectedPeriodKey);
+    } catch (e) {
+      state = state.copyWith(errorMessage: 'Failed to delete item: $e');
     }
   }
 
