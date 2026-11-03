@@ -27,6 +27,7 @@
 - **Lint & Static Analysis:** `flutter analyze`
 - **Run Tests:** `flutter test`
 - **Build Artifact (Release APK):** `flutter build apk --release`
+- **CI Runner Memory Constraints:** In `android/gradle.properties`, JVM heap and daemon allocations must be kept within standard CI runner limits (7 GB total runner RAM). Always maintain `-Xmx3072m -XX:MaxMetaspaceSize=768m` and `kotlin.daemon.jvmargs=-Xmx1536m` to prevent Linux kernel Out-Of-Memory (OOM) killer termination during `assembleRelease`.
 
 ## 5. Device Testing & In-App Auto-Updater
 - **Testing Workflow:** The user tests the application directly on physical mobile devices via the in-app "Check for updates" button in Settings (`lib/features/updater/`).
