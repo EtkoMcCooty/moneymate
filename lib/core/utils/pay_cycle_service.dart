@@ -106,6 +106,24 @@ class PayCycleService {
     return DateRange(start: start, end: end);
   }
 
+  /// Formats an integer day with its English ordinal suffix (e.g. 1st, 2nd, 3rd, 4th, 21st, 31st).
+  static String formatOrdinal(int number) {
+    final mod100 = number % 100;
+    if (mod100 >= 11 && mod100 <= 13) {
+      return '${number}th';
+    }
+    switch (number % 10) {
+      case 1:
+        return '${number}st';
+      case 2:
+        return '${number}nd';
+      case 3:
+        return '${number}rd';
+      default:
+        return '${number}th';
+    }
+  }
+
   /// Formats [periodKey] (e.g. `2026-01`) into a human-friendly title (e.g. `January 2026`).
   static String formatPeriodTitle(String periodKey) {
     final parts = periodKey.split('-');

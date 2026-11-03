@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:moneymate/core/database/app_database.dart';
 import 'package:moneymate/core/database/database_provider.dart';
+import 'package:moneymate/core/theme/app_theme.dart';
 import 'package:moneymate/features/tracker/views/tracker_screen.dart';
 
 void main() {
@@ -126,6 +127,20 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Household'), findsOneWidget);
+    });
+
+    testWidgets('applies green color for income buttons and red for expense/debt buttons', (tester) async {
+      await tester.pumpWidget(buildTestApp());
+      await tester.pumpAndSettle();
+
+      final incomeBtn = tester.widget<OutlinedButton>(find.byKey(const Key('add_item_button_Income')));
+      final householdBtn = tester.widget<OutlinedButton>(find.byKey(const Key('add_item_button_Household')));
+
+      final incomeColor = incomeBtn.style?.foregroundColor?.resolve({});
+      final expenseColor = householdBtn.style?.foregroundColor?.resolve({});
+
+      expect(incomeColor, equals(AppTheme.incomeColor));
+      expect(expenseColor, equals(AppTheme.expenseColor));
     });
   });
 }

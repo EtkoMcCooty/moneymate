@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../core/utils/pay_cycle_service.dart';
 import '../models/tracker_ledger_models.dart';
@@ -375,6 +376,8 @@ class TrackerScreen extends ConsumerWidget {
       section.totalAmount,
       symbol: currencySymbol,
     );
+    final actionColor =
+        _getCategoryActionColor(context, section.category.categoryType);
 
     return Card(
       elevation: 0,
@@ -390,7 +393,7 @@ class TrackerScreen extends ConsumerWidget {
         },
         leading: Icon(
           _getCategoryIcon(section.category.categoryType),
-          color: Theme.of(context).colorScheme.primary,
+          color: actionColor,
         ),
         title: Row(
           children: [
@@ -495,6 +498,10 @@ class TrackerScreen extends ConsumerWidget {
               width: double.infinity,
               child: OutlinedButton.icon(
                 key: Key('add_item_button_${section.category.name}'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: actionColor,
+                  side: BorderSide(color: actionColor.withValues(alpha: 0.5)),
+                ),
                 icon: const Icon(Icons.add, size: 18),
                 label: Text('Add ${section.category.name} Item'),
                 onPressed: () =>
@@ -514,7 +521,8 @@ class TrackerScreen extends ConsumerWidget {
   ) {
     final parts = <String>[];
     if (itemWithEntry.item.dueDay != null) {
-      parts.add('Due ${itemWithEntry.item.dueDay}th of month');
+      parts.add(
+          'Due ${PayCycleService.formatOrdinal(itemWithEntry.item.dueDay!)} of month');
     }
     if (itemWithEntry.debtMetadata != null) {
       final remainingFormatted = CurrencyFormatter.format(
@@ -557,6 +565,22 @@ class TrackerScreen extends ConsumerWidget {
         return Icons.trending_up_outlined;
       default:
         return Icons.folder_outlined;
+    }
+  }
+
+  Color _getCategoryActionColor(BuildContext context, String type) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    switch (type.toLowerCase()) {
+      case 'income':
+        return isDark ? const Color(0xFF4ADE80) : AppTheme.incomeColor;
+      case 'expense':
+      case 'debt':
+        return isDark ? const Color(0xFFF87171) : AppTheme.expenseColor;
+      case 'savings':
+      case 'investment':
+        return isDark ? const Color(0xFF60A5FA) : AppTheme.savingsColor;
+      default:
+        return Theme.of(context).colorScheme.primary;
     }
   }
 }

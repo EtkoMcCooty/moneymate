@@ -55,6 +55,21 @@ void main() {
     });
 
     group('Formatting & Navigation', () {
+      test('formats integer day into proper English ordinal', () {
+        expect(PayCycleService.formatOrdinal(1), equals('1st'));
+        expect(PayCycleService.formatOrdinal(2), equals('2nd'));
+        expect(PayCycleService.formatOrdinal(3), equals('3rd'));
+        expect(PayCycleService.formatOrdinal(4), equals('4th'));
+        expect(PayCycleService.formatOrdinal(11), equals('11th'));
+        expect(PayCycleService.formatOrdinal(12), equals('12th'));
+        expect(PayCycleService.formatOrdinal(13), equals('13th'));
+        expect(PayCycleService.formatOrdinal(18), equals('18th'));
+        expect(PayCycleService.formatOrdinal(21), equals('21st'));
+        expect(PayCycleService.formatOrdinal(22), equals('22nd'));
+        expect(PayCycleService.formatOrdinal(23), equals('23rd'));
+        expect(PayCycleService.formatOrdinal(31), equals('31st'));
+      });
+
       test('formats user friendly period title', () {
         expect(PayCycleService.formatPeriodTitle('2026-01'), equals('January 2026'));
         expect(PayCycleService.formatPeriodTitle('2026-11'), equals('November 2026'));

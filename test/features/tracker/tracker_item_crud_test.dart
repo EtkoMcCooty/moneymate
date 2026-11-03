@@ -179,6 +179,20 @@ void main() {
       // Should now see Internet in the list
       expect(find.text('Internet'), findsOneWidget);
       expect(find.text('Due 18th of month'), findsOneWidget);
+
+      // Add another item with dueDay 1 to verify '1st' instead of '1th'
+      await tester.tap(addBtnFinder);
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byKey(const Key('item_name_field')), 'Rent');
+      await tester.enterText(find.byKey(const Key('item_due_day_field')), '1');
+
+      await tester.tap(find.byKey(const Key('save_item_button')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Rent'), findsOneWidget);
+      expect(find.text('Due 1st of month'), findsOneWidget);
+      expect(find.text('Due 1th of month'), findsNothing);
     });
   });
 }
