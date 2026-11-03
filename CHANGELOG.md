@@ -3,7 +3,7 @@
 All notable changes to MoneyMate are documented here in plain, user-friendly language.
 
 ## [Unreleased]
-- Upcoming features and improvements.
+- Added support for reading Excel (.xlsx) and CSV budget spreadsheets with automatic recognition of multi-month columns, amounts, and notes.
 
 ## [v0.1.0+30] - 2026-11-03
 - You can now enter an item's amount immediately when adding it to the tracker.
