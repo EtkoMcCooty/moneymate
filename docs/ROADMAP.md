@@ -1,6 +1,6 @@
 # Project Roadmap & Execution Ledger (Vertical Slice Architecture)
 
-> **Overall Progress:** 8 / 14 tasks completed (57%)  
+> **Overall Progress:** 9 / 14 tasks completed (64%)  
 > **Last Updated:** 2026-11-02  
 
 ---
@@ -32,7 +32,7 @@
 - [x] [tracker-entry-editor] In-Line Entry & Note Editor: Inline monthly cell editing, context note modals (e.g. "[1] Half Nursery fees"), and instant recalculation of totals and disposable income.
 
 ### Milestone 4: Spreadsheet Importer Slice (Excel & CSV - End-to-End)
-- [ ] [importer-parsers] Spreadsheet File Parsers: File ingestion engine for `.xlsx` and `.csv` files parsing multi-month columns, headers, and values with unit tests.
+- [x] [importer-parsers] Spreadsheet File Parsers: File ingestion engine for `.xlsx` and `.csv` files parsing multi-month columns, headers, and values with unit tests.
 - [ ] [smart-matcher] Smart Category Matcher: Heuristic rule engine automatically categorizing row labels (e.g. "Rent (29th)" -> Household, day 29; "Wage" -> Income).
 - [ ] [importer-ui-flow] Importer Flow & Review UI: File picker, pre-import category preview/adjustment modal, and atomic database commit.
 
