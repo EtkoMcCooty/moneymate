@@ -3,6 +3,7 @@
 All notable changes to MoneyMate are documented here in plain, user-friendly language.
 
 ## [Unreleased]
+- Added smart category and due date recognition for imported spreadsheet rows (e.g., auto-detecting rent due days and income).
 - Added visible 'Import spreadsheet' button in the Monthly Tracker and Settings.
 - hotfix: Clarified that spreadsheet importing is rolling out (reading engine is active; file selection screen arriving in the next update).
 
