@@ -24,6 +24,32 @@ class TrackerScreen extends ConsumerWidget {
     ref.read(trackerLedgerNotifierProvider.notifier).selectPeriod(targetKey);
   }
 
+  Future<bool?> _confirmDeleteItem(BuildContext context, String itemName) {
+    return showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Item?'),
+        content: Text(
+          'Are you sure you want to remove "$itemName"? This cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            key: const Key('confirm_delete_button'),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(ctx).colorScheme.error,
+            ),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _openItemDialog(
     BuildContext context,
     WidgetRef ref,
@@ -44,6 +70,7 @@ class TrackerScreen extends ConsumerWidget {
         onSave: ({
           required int categoryId,
           required String name,
+          double? amount,
           int? dueDay,
           double? totalPrincipal,
           double? interestRate,
@@ -52,6 +79,7 @@ class TrackerScreen extends ConsumerWidget {
             await notifier.addItem(
               categoryId: categoryId,
               name: name,
+              amount: amount,
               dueDay: dueDay,
               totalPrincipal: totalPrincipal,
               interestRate: interestRate,
@@ -65,7 +93,16 @@ class TrackerScreen extends ConsumerWidget {
               totalPrincipal: totalPrincipal,
               interestRate: interestRate,
             );
+            if (amount != null) {
+              await notifier.updateEntry(
+                itemId: item.item.id,
+                amount: amount,
+              );
+            }
           }
+        },
+        onDelete: (itemId) async {
+          await notifier.deleteItem(itemId);
         },
         onArchive: (itemId) async {
           await notifier.archiveItem(itemId);
@@ -450,41 +487,67 @@ class TrackerScreen extends ConsumerWidget {
                 itemWithEntry.amount,
                 symbol: currencySymbol,
               );
-              return ListTile(
-                dense: true,
-                onTap: () => _openItemDialog(
-                    context, ref, section.category.id, itemWithEntry),
-                title: Text(itemWithEntry.item.name),
-                subtitle: _buildItemSubtitle(
-                    context, itemWithEntry, currencySymbol),
-                trailing: Tooltip(
-                  message: 'Edit amount and note',
-                  child: InkWell(
-                    key: Key('edit_entry_${itemWithEntry.item.id}'),
-                    borderRadius: BorderRadius.circular(8),
-                    onTap: () => _openEntryDialog(
-                      context,
-                      ref,
-                      itemWithEntry,
-                      section.category.categoryType,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8.0, vertical: 4.0),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            amountStr,
-                            style: const TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                          const SizedBox(width: 4),
-                          Icon(
-                            Icons.edit_note,
-                            size: 18,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                        ],
+              return Dismissible(
+                key: Key('dismissible_item_${itemWithEntry.item.id}'),
+                direction: DismissDirection.endToStart,
+                background: Container(
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.only(right: 20.0),
+                  color: Theme.of(context).colorScheme.error,
+                  child: const Icon(Icons.delete_outline, color: Colors.white),
+                ),
+                confirmDismiss: (_) =>
+                    _confirmDeleteItem(context, itemWithEntry.item.name),
+                onDismissed: (_) {
+                  ref
+                      .read(trackerLedgerNotifierProvider.notifier)
+                      .deleteItem(itemWithEntry.item.id);
+                },
+                child: ListTile(
+                  dense: true,
+                  onTap: () => _openItemDialog(
+                      context, ref, section.category.id, itemWithEntry),
+                  onLongPress: () async {
+                    final confirmed = await _confirmDeleteItem(
+                        context, itemWithEntry.item.name);
+                    if (confirmed == true) {
+                      await ref
+                          .read(trackerLedgerNotifierProvider.notifier)
+                          .deleteItem(itemWithEntry.item.id);
+                    }
+                  },
+                  title: Text(itemWithEntry.item.name),
+                  subtitle: _buildItemSubtitle(
+                      context, itemWithEntry, currencySymbol),
+                  trailing: Tooltip(
+                    message: 'Edit amount and note',
+                    child: InkWell(
+                      key: Key('edit_entry_${itemWithEntry.item.id}'),
+                      borderRadius: BorderRadius.circular(8),
+                      onTap: () => _openEntryDialog(
+                        context,
+                        ref,
+                        itemWithEntry,
+                        section.category.categoryType,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8.0, vertical: 4.0),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              amountStr,
+                              style: const TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                            const SizedBox(width: 4),
+                            Icon(
+                              Icons.edit_note,
+                              size: 18,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),

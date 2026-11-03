@@ -12,11 +12,13 @@ class ItemFormDialog extends StatefulWidget {
   final Future<void> Function({
     required int categoryId,
     required String name,
+    double? amount,
     int? dueDay,
     double? totalPrincipal,
     double? interestRate,
   }) onSave;
   final Future<void> Function(int itemId)? onArchive;
+  final Future<void> Function(int itemId)? onDelete;
 
   const ItemFormDialog({
     super.key,
@@ -26,6 +28,7 @@ class ItemFormDialog extends StatefulWidget {
     this.itemToEdit,
     required this.onSave,
     this.onArchive,
+    this.onDelete,
   });
 
   @override
@@ -36,6 +39,7 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
   final _formKey = GlobalKey<FormState>();
   late int _selectedCategoryId;
   late final TextEditingController _nameController;
+  late final TextEditingController _amountController;
   late final TextEditingController _dueDayController;
   late final TextEditingController _principalController;
   late final TextEditingController _interestController;
@@ -56,6 +60,11 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
 
     final existing = widget.itemToEdit;
     _nameController = TextEditingController(text: existing?.item.name ?? '');
+    _amountController = TextEditingController(
+      text: existing?.amount != null && existing!.amount > 0
+          ? existing.amount.toStringAsFixed(2)
+          : '',
+    );
     _dueDayController = TextEditingController(
       text: existing?.item.dueDay != null ? existing!.item.dueDay.toString() : '',
     );
@@ -74,6 +83,7 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
   @override
   void dispose() {
     _nameController.dispose();
+    _amountController.dispose();
     _dueDayController.dispose();
     _principalController.dispose();
     _interestController.dispose();
@@ -86,6 +96,10 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
     setState(() => _isSubmitting = true);
 
     final name = _nameController.text.trim();
+    final amountText = _amountController.text.trim();
+    final amount = amountText.isNotEmpty
+        ? double.tryParse(amountText)
+        : (_isEditing ? 0.0 : null);
     final dueDayText = _dueDayController.text.trim();
     final dueDay = dueDayText.isNotEmpty ? int.tryParse(dueDayText) : null;
 
@@ -102,6 +116,7 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
       await widget.onSave(
         categoryId: _selectedCategoryId,
         name: name,
+        amount: amount,
         dueDay: dueDay,
         totalPrincipal: principal,
         interestRate: interest,
@@ -112,6 +127,46 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);
+      }
+    }
+  }
+
+  Future<void> _confirmDelete() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Item?'),
+        content: Text(
+          'Are you sure you want to remove "${widget.itemToEdit!.item.name}"? This cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            key: const Key('confirm_delete_button'),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(ctx).colorScheme.error,
+            ),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && widget.onDelete != null && mounted) {
+      setState(() => _isSubmitting = true);
+      try {
+        await widget.onDelete!(widget.itemToEdit!.item.id);
+        if (mounted) {
+          Navigator.of(context).pop();
+        }
+      } finally {
+        if (mounted) {
+          setState(() => _isSubmitting = false);
+        }
       }
     }
   }
@@ -211,6 +266,31 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
               ),
               const SizedBox(height: 12),
 
+              // Amount
+              TextFormField(
+                key: const Key('item_amount_field'),
+                controller: _amountController,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                decoration: InputDecoration(
+                  labelText: 'Amount',
+                  hintText: '0.00',
+                  prefixText: '${widget.currencySymbol} ',
+                  border: const OutlineInputBorder(),
+                  contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12.0, vertical: 8.0),
+                ),
+                validator: (val) {
+                  if (val == null || val.trim().isEmpty) return null;
+                  final parsed = double.tryParse(val.trim());
+                  if (parsed == null || parsed < 0) {
+                    return 'Enter a valid amount';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 12),
+
               // Due Day (Optional)
               TextFormField(
                 key: const Key('item_due_day_field'),
@@ -294,7 +374,16 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
         ),
       ),
       actions: [
-        if (_isEditing && widget.onArchive != null)
+        if (_isEditing && widget.onDelete != null)
+          TextButton(
+            key: const Key('delete_item_button'),
+            onPressed: _isSubmitting ? null : _confirmDelete,
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: const Text('Delete'),
+          )
+        else if (_isEditing && widget.onArchive != null)
           TextButton(
             key: const Key('archive_item_button'),
             onPressed: _isSubmitting ? null : _confirmArchive,

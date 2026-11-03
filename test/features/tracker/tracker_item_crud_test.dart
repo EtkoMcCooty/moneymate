@@ -141,10 +141,68 @@ void main() {
           .getSingle();
       expect(persisted.isArchived, isTrue);
     });
+
+    test('creates new finance item with initial amount', () async {
+      final householdSec =
+          notifier.state.sections.firstWhere((s) => s.category.name == 'Household');
+
+      await notifier.addItem(
+        categoryId: householdSec.category.id,
+        name: 'Electricity',
+        amount: 85.50,
+        dueDay: 12,
+      );
+
+      final updatedHousehold =
+          notifier.state.sections.firstWhere((s) => s.category.id == householdSec.category.id);
+      final itemWithEntry =
+          updatedHousehold.items.firstWhere((i) => i.item.name == 'Electricity');
+      expect(itemWithEntry.amount, equals(85.50));
+      expect(updatedHousehold.totalAmount, equals(85.50));
+
+      // Verify DB entry
+      final entry = await (db.select(db.itemEntries)
+            ..where((e) => e.itemId.equals(itemWithEntry.item.id)))
+          .getSingle();
+      expect(entry.amount, equals(85.50));
+    });
+
+    test('permanently deletes finance item and cascade removes entries', () async {
+      final householdSec =
+          notifier.state.sections.firstWhere((s) => s.category.name == 'Household');
+
+      await notifier.addItem(
+        categoryId: householdSec.category.id,
+        name: 'Gas',
+        amount: 60.0,
+      );
+
+      final itemWithEntry = notifier.state.sections
+          .firstWhere((s) => s.category.id == householdSec.category.id)
+          .items
+          .firstWhere((i) => i.item.name == 'Gas');
+
+      await notifier.deleteItem(itemWithEntry.item.id);
+
+      final updatedHousehold = notifier.state.sections
+          .firstWhere((s) => s.category.id == householdSec.category.id);
+      expect(updatedHousehold.items.any((i) => i.item.id == itemWithEntry.item.id), isFalse);
+
+      // Verify DB record is removed
+      final itemRecord = await (db.select(db.financeItems)
+            ..where((i) => i.id.equals(itemWithEntry.item.id)))
+          .getSingleOrNull();
+      expect(itemRecord, isNull);
+
+      final entryRecord = await (db.select(db.itemEntries)
+            ..where((e) => e.itemId.equals(itemWithEntry.item.id)))
+          .getSingleOrNull();
+      expect(entryRecord, isNull);
+    });
   });
 
   group('TrackerScreen - Item CRUD UI Integration', () {
-    testWidgets('allows adding an item to a category section via dialog', (tester) async {
+    testWidgets('allows adding an item with amount and due day via dialog', (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -166,21 +224,66 @@ void main() {
       await tester.tap(addBtnFinder);
       await tester.pumpAndSettle();
 
-      // Modal dialog should open
+      // Modal dialog should open with Name, Amount, and Due Day
       expect(find.text('Add New Item'), findsOneWidget);
       expect(find.byKey(const Key('item_name_field')), findsOneWidget);
+      expect(find.byKey(const Key('item_amount_field')), findsOneWidget);
+      expect(find.byKey(const Key('item_due_day_field')), findsOneWidget);
 
       await tester.enterText(find.byKey(const Key('item_name_field')), 'Internet');
+      await tester.enterText(find.byKey(const Key('item_amount_field')), '45.00');
       await tester.enterText(find.byKey(const Key('item_due_day_field')), '18');
 
       await tester.tap(find.byKey(const Key('save_item_button')));
       await tester.pumpAndSettle();
 
-      // Should now see Internet in the list
+      // Should now see Internet with amount and due date in the list
       expect(find.text('Internet'), findsOneWidget);
+      // Both category subtotal and item amount show £45.00
+      expect(find.text('£45.00'), findsNWidgets(2));
       expect(find.text('Due 18th of month'), findsOneWidget);
 
-      // Add another item with dueDay 1 to verify '1st' instead of '1th'
+      // Tap on Internet to edit and delete it
+      await tester.ensureVisible(find.text('Internet'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Internet'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Edit Item'), findsOneWidget);
+      final deleteBtnFinder = find.byKey(const Key('delete_item_button'));
+      expect(deleteBtnFinder, findsOneWidget);
+
+      await tester.tap(deleteBtnFinder);
+      await tester.pumpAndSettle();
+
+      // Confirmation dialog opens
+      expect(find.text('Delete Item?'), findsOneWidget);
+      final confirmDeleteBtn = find.byKey(const Key('confirm_delete_button'));
+      expect(confirmDeleteBtn, findsOneWidget);
+
+      await tester.tap(confirmDeleteBtn);
+      await tester.pumpAndSettle();
+
+      // Internet is now deleted from the list
+      expect(find.text('Internet'), findsNothing);
+    });
+
+    testWidgets('allows adding an item with dueDay 1 and verifies 1st ordinal', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            appDatabaseProvider.overrideWithValue(db),
+          ],
+          child: const MaterialApp(
+            home: TrackerScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final addBtnFinder = find.byKey(const Key('add_item_button_Household'));
+      await tester.ensureVisible(addBtnFinder);
+      await tester.pumpAndSettle();
       await tester.tap(addBtnFinder);
       await tester.pumpAndSettle();
 
@@ -193,6 +296,48 @@ void main() {
       expect(find.text('Rent'), findsOneWidget);
       expect(find.text('Due 1st of month'), findsOneWidget);
       expect(find.text('Due 1th of month'), findsNothing);
+    });
+
+    testWidgets('allows deleting an item via swipe dismiss', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            appDatabaseProvider.overrideWithValue(db),
+          ],
+          child: const MaterialApp(
+            home: TrackerScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final addBtnFinder = find.byKey(const Key('add_item_button_Household'));
+      await tester.ensureVisible(addBtnFinder);
+      await tester.pumpAndSettle();
+      await tester.tap(addBtnFinder);
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byKey(const Key('item_name_field')), 'Water Bill');
+      await tester.enterText(find.byKey(const Key('item_amount_field')), '30.00');
+
+      await tester.tap(find.byKey(const Key('save_item_button')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Water Bill'), findsOneWidget);
+
+      await tester.ensureVisible(find.text('Water Bill'));
+      await tester.pumpAndSettle();
+
+      // Swipe dismiss from right to left
+      await tester.drag(find.text('Water Bill'), const Offset(-500.0, 0.0));
+      await tester.pumpAndSettle();
+
+      // Delete confirmation dialog is shown
+      expect(find.text('Delete Item?'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('confirm_delete_button')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Water Bill'), findsNothing);
     });
   });
 }
