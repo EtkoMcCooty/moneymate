@@ -6,6 +6,7 @@ import '../../../core/utils/currency_formatter.dart';
 import '../../../core/utils/pay_cycle_service.dart';
 import '../models/tracker_ledger_models.dart';
 import '../state/tracker_ledger_notifier.dart';
+import '../../importer/views/import_spreadsheet_dialog.dart';
 import 'entry_editor_dialog.dart';
 import 'item_form_dialog.dart';
 
@@ -170,6 +171,14 @@ class TrackerScreen extends ConsumerWidget {
       key: const Key('tracker_screen_content'),
       appBar: AppBar(
         title: const Text('Monthly Tracker'),
+        actions: [
+          IconButton(
+            key: const Key('tracker_import_spreadsheet_button'),
+            icon: const Icon(Icons.upload_file_outlined),
+            tooltip: 'Import spreadsheet',
+            onPressed: () => ImportSpreadsheetDialog.show(context),
+          ),
+        ],
       ),
       body: ledgerState.isLoading
           ? const Center(child: CircularProgressIndicator())

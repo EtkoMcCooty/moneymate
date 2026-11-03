@@ -5,6 +5,7 @@ import '../../../core/utils/pay_cycle_service.dart';
 import '../../updater/state/update_notifier.dart';
 import '../../updater/state/update_state.dart';
 import '../../updater/views/update_prompt_dialog.dart';
+import '../../importer/views/import_spreadsheet_dialog.dart';
 import '../state/settings_notifier.dart';
 
 /// Screen managing payday settings, currency preferences, spending categories,
@@ -398,6 +399,31 @@ class SettingsScreen extends ConsumerWidget {
                         ),
                       ],
                     ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Data & Spreadsheets Section
+                Text(
+                  'Data & Spreadsheets',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                Card(
+                  elevation: 0,
+                  color: Theme.of(context).colorScheme.surfaceContainerLow,
+                  child: ListTile(
+                    key: const Key('settings_import_spreadsheet_tile'),
+                    leading: const Icon(Icons.upload_file_outlined),
+                    title: const Text('Import spreadsheet'),
+                    subtitle: const Text(
+                      'Import from Excel (.xlsx) or CSV budget file',
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => ImportSpreadsheetDialog.show(context),
                   ),
                 ),
                 const SizedBox(height: 24),

@@ -115,5 +115,25 @@ void main() {
       // Verify category rendered in list
       expect(find.text('Gym & Fitness'), findsOneWidget);
     });
+
+    testWidgets('shows import spreadsheet tile and opens status dialog', (tester) async {
+      await tester.pumpWidget(buildTestApp());
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(find.byKey(const Key('settings_import_spreadsheet_tile')), 200);
+      final importTile = find.byKey(const Key('settings_import_spreadsheet_tile'));
+      expect(importTile, findsOneWidget);
+
+      await tester.tap(importTile);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Import spreadsheet'), findsWidgets);
+      expect(find.text('Got it'), findsOneWidget);
+
+      await tester.tap(find.text('Got it'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Got it'), findsNothing);
+    });
   });
 }
