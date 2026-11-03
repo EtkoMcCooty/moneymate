@@ -3,7 +3,8 @@
 All notable changes to MoneyMate are documented here in plain, user-friendly language.
 
 ## [Unreleased]
-- Added support for reading Excel (.xlsx) and CSV budget spreadsheets with automatic recognition of multi-month columns, amounts, and notes.
+- Added visible 'Import spreadsheet' button in the Monthly Tracker and Settings.
+- hotfix: Clarified that spreadsheet importing is rolling out (reading engine is active; file selection screen arriving in the next update).
 
 ## [v0.1.0+30] - 2026-11-03
 - You can now enter an item's amount immediately when adding it to the tracker.

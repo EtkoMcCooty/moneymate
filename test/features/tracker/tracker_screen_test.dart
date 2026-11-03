@@ -142,5 +142,24 @@ void main() {
       expect(incomeColor, equals(AppTheme.incomeColor));
       expect(expenseColor, equals(AppTheme.expenseColor));
     });
+
+    testWidgets('shows import spreadsheet button in AppBar and opens status dialog', (tester) async {
+      await tester.pumpWidget(buildTestApp());
+      await tester.pumpAndSettle();
+
+      final importBtn = find.byKey(const Key('tracker_import_spreadsheet_button'));
+      expect(importBtn, findsOneWidget);
+
+      await tester.tap(importBtn);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Import spreadsheet'), findsWidgets);
+      expect(find.text('Got it'), findsOneWidget);
+
+      await tester.tap(find.text('Got it'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Got it'), findsNothing);
+    });
   });
 }
