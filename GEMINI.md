@@ -15,6 +15,7 @@
 - Adhere strictly to project architecture and contracts documented in `docs/ARCHITECTURE.md`.
 - **Tone & Plain Language (No Jargon):** All user-facing UI labels, placeholders, tooltips, dialogs, and messages must avoid financial, accounting, and technical jargon (e.g. avoid words like *"Ledger"*, *"Historical Trends"*, *"Pay Cycle Offset"*, *"Amortization"*, or *"Disposition"*). Use simple, friendly, everyday plain language instead (e.g. use *"Monthly Tracker"* / *"Bills & Expenses"*, *"Insights"* / *"Your Progress"*, *"Payday"* / *"Pay Period"*). Note: *"Disposable Income"* is explicitly approved and encouraged to match spreadsheet conventions.
 - Ensure all business logic and financial calculations (disposable income, debt balance countdown, cycle date offsets) are backed by unit tests.
+- **Root-Cause Defect Elimination (No Guessing / Brute-Force):** When any automated test fails, hit-test error occurs, or defect is discovered during development, developers and agents must NEVER guess, speculate, or apply reactive trial-and-error edits. Enforce the `sdlc-bug-hunt` methodology (inspect the widget hierarchy / call-chain, verify layout constraints, prove the root cause) before applying surgical fixes.
 - Keep changes atomic, clean, and tested.
 
 ## 3. Package Management & Tooling
