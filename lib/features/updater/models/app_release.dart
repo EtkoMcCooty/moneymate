@@ -4,6 +4,7 @@ class AppRelease {
   final String version;
   final String title;
   final String notes;
+  final String rawNotes;
   final String? apkUrl;
   final DateTime publishedAt;
 
@@ -12,6 +13,7 @@ class AppRelease {
     required this.version,
     required this.title,
     required this.notes,
+    this.rawNotes = '',
     this.apkUrl,
     required this.publishedAt,
   });
@@ -48,10 +50,56 @@ class AppRelease {
       tagName: tagName,
       version: version,
       title: name,
-      notes: body,
+      notes: cleanReleaseNotes(body),
+      rawNotes: body,
       apkUrl: apkUrl,
       publishedAt: publishedAt,
     );
+  }
+
+  /// Sanitizes release notes by removing automated boilerplate, download links,
+  /// and technical changelog links, leaving clean bullet points for the user.
+  static String cleanReleaseNotes(String raw) {
+    if (raw.trim().isEmpty) {
+      return '• General performance improvements and bug fixes.';
+    }
+
+    final lines = raw.split('\n');
+    final cleanedLines = <String>[];
+
+    for (final line in lines) {
+      final trimmed = line.trim();
+      if (trimmed.isEmpty) continue;
+
+      // Filter out generic automated build lines and download headers
+      if (trimmed.startsWith('Automated MoneyMate build') ||
+          trimmed.startsWith('### 📱 Download') ||
+          trimmed.startsWith('Direct APK download') ||
+          trimmed.startsWith('**Full Changelog**') ||
+          trimmed.startsWith('* Full Changelog') ||
+          trimmed.startsWith('Full Changelog:') ||
+          trimmed.startsWith('See full changelog')) {
+        continue;
+      }
+
+      // Format bullet points cleanly
+      if (trimmed.startsWith('* ') || trimmed.startsWith('- ')) {
+        cleanedLines.add('• ${trimmed.substring(2).trim()}');
+      } else if (trimmed.startsWith('### ') || trimmed.startsWith('## ')) {
+        final headerText = trimmed.replaceFirst(RegExp(r'^#+\s*'), '').trim();
+        if (!headerText.toLowerCase().contains('download')) {
+          cleanedLines.add(headerText);
+        }
+      } else {
+        cleanedLines.add(trimmed);
+      }
+    }
+
+    if (cleanedLines.isEmpty) {
+      return '• General performance improvements and bug fixes.';
+    }
+
+    return cleanedLines.join('\n');
   }
 
   static String _cleanVersionString(String raw) {

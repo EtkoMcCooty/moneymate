@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -54,6 +56,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Download APK Artifact
         uses: actions/download-artifact@v4
@@ -74,6 +78,29 @@ jobs:
             echo "prerelease=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: Generate Changelog & Release Notes
+        id: changelog
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -n "$PREV_TAG" ]; then
+            echo "Previous tag found: $PREV_TAG"
+            CHANGES=$(git log ${PREV_TAG}..HEAD --pretty=format:"* %s" --no-merges)
+          else
+            echo "No previous tag found, taking latest commits"
+            CHANGES=$(git log -n 10 --pretty=format:"* %s" --no-merges)
+          fi
+
+          if [ -z "$CHANGES" ]; then
+            CHANGES="* General performance improvements and bug fixes."
+          fi
+
+          {
+            echo "notes<<EOF"
+            echo "### 🚀 What's New"
+            echo "$CHANGES"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
       - name: Create GitHub Release with Sideload APK
         uses: softprops/action-gh-release@v2
         with:
@@ -81,9 +108,6 @@ jobs:
           tag_name: ${{ steps.release_info.outputs.tag }}
           name: ${{ steps.release_info.outputs.name }}
           prerelease: ${{ steps.release_info.outputs.prerelease == 'true' }}
-          body: |
-            Automated MoneyMate build for ${{ github.event_name == 'pull_request' && format('PR #{0}', github.event.pull_request.number) || 'official release' }}.
-            
-            ### 📱 Download & Sideload
-            Direct APK download: [app-release.apk](app-release.apk)
+          generate_release_notes: true
+          body: ${{ steps.changelog.outputs.notes }}
           files: release-build/*.apk

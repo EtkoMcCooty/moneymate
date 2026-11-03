@@ -34,6 +34,34 @@ void main() {
       expect(release.apkUrl, equals('https://github.com/EtkoMcCooty/moneymate/releases/download/release-v0.2.0/app-release.apk'));
     });
 
+    test('cleanReleaseNotes removes automated generic boilerplate', () {
+      const genericBody = '''
+Automated MoneyMate build for official release.
+
+### 📱 Download & Sideload
+Direct APK download: [app-release.apk](app-release.apk)
+''';
+      final cleaned = AppRelease.cleanReleaseNotes(genericBody);
+      expect(cleaned, equals('• General performance improvements and bug fixes.'));
+      expect(cleaned, isNot(contains('Automated MoneyMate build')));
+      expect(cleaned, isNot(contains('Download & Sideload')));
+    });
+
+    test('cleanReleaseNotes formats commits and headers cleanly', () {
+      const realChangelog = '''
+### 🚀 What's New
+* feat(tracker): add category color coding
+* fix(dialog): correct due date ordinal
+
+**Full Changelog**: https://github.com/EtkoMcCooty/moneymate/commits/v0.2.0
+''';
+      final cleaned = AppRelease.cleanReleaseNotes(realChangelog);
+      expect(cleaned, contains('🚀 What\'s New'));
+      expect(cleaned, contains('• feat(tracker): add category color coding'));
+      expect(cleaned, contains('• fix(dialog): correct due date ordinal'));
+      expect(cleaned, isNot(contains('Full Changelog')));
+    });
+
     test('default repo points to moneymate', () {
       final service = GitHubReleaseService();
       expect(service.owner, equals('EtkoMcCooty'));
