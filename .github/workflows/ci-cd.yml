@@ -81,23 +81,70 @@ jobs:
       - name: Generate Changelog & Release Notes
         id: changelog
         run: |
-          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
-          if [ -n "$PREV_TAG" ]; then
-            echo "Previous tag found: $PREV_TAG"
-            CHANGES=$(git log ${PREV_TAG}..HEAD --pretty=format:"* %s" --no-merges)
-          else
-            echo "No previous tag found, taking latest commits"
-            CHANGES=$(git log -n 10 --pretty=format:"* %s" --no-merges)
+          TAG="${{ steps.release_info.outputs.tag }}"
+          CLEAN_TAG="${TAG#v}"
+          NOTES=""
+
+          # 1. Try to extract matching version section from CHANGELOG.md
+          if [ -f CHANGELOG.md ]; then
+            NOTES=$(awk -v tag="$TAG" -v ctag="$CLEAN_TAG" '
+              $0 ~ "^## \\[" (tag|ctag) "\\]" { flag=1; next }
+              flag && /^## \\[/ { flag=0 }
+              flag { print }
+            ' CHANGELOG.md | sed -e '/^[[:space:]]*$/d')
           fi
 
-          if [ -z "$CHANGES" ]; then
-            CHANGES="* General performance improvements and bug fixes."
+          # 2. If nothing extracted for exact tag, check if there are notes under [Unreleased]
+          if [ -z "$NOTES" ] && [ -f CHANGELOG.md ]; then
+            UNRELEASED_NOTES=$(awk '
+              /^## \[Unreleased\]/ { flag=1; next }
+              flag && /^## \[/ { flag=0 }
+              flag { print }
+            ' CHANGELOG.md | sed -e '/^[[:space:]]*$/d' | grep -v 'Upcoming features and improvements' || true)
+            if [ -n "$UNRELEASED_NOTES" ]; then
+              NOTES="$UNRELEASED_NOTES"
+            fi
+          fi
+
+          # 3. Fallback: Parse and sanitize git commits
+          if [ -z "$NOTES" ]; then
+            PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+            if [ -n "$PREV_TAG" ]; then
+              RAW_COMMITS=$(git log ${PREV_TAG}..HEAD --pretty=format:"%s" --no-merges)
+            else
+              RAW_COMMITS=$(git log -n 10 --pretty=format:"%s" --no-merges)
+            fi
+
+            NOTES=$(echo "$RAW_COMMITS" | while IFS= read -r line; do
+              [ -z "$line" ] && continue
+              # Filter out internal developer commits
+              if echo "$line" | grep -qiE '^(chore|ci|docs|test|style|Merge)\b'; then
+                continue
+              fi
+              # Check for hotfix
+              if echo "$line" | grep -qiE '^(hotfix|fix\([^)]*hotfix[^)]*\))'; then
+                cleaned=$(echo "$line" | sed -E 's/^(hotfix|fix\([^)]*hotfix[^)]*\)):\s*//I' | sed -E 's/\s*\([#0-9, ]+\)$//')
+                echo "- hotfix: $cleaned"
+              elif echo "$line" | grep -qiE '^(feat|fix|perf|refactor)\([^)]*\):'; then
+                cleaned=$(echo "$line" | sed -E 's/^(feat|fix|perf|refactor)\([^)]*\):\s*//I' | sed -E 's/\s*\([#0-9, ]+\)$//')
+                # Capitalize first character
+                first="$(echo "${cleaned:0:1}" | tr '[:lower:]' '[:upper:]')"
+                rest="${cleaned:1}"
+                echo "- ${first}${rest}"
+              else
+                echo "- $line"
+              fi
+            done)
+          fi
+
+          if [ -z "$NOTES" ]; then
+            NOTES="- General performance improvements and bug fixes."
           fi
 
           {
             echo "notes<<EOF"
             echo "### 🚀 What's New"
-            echo "$CHANGES"
+            echo "$NOTES"
             echo "EOF"
           } >> $GITHUB_OUTPUT
 
@@ -108,6 +155,6 @@ jobs:
           tag_name: ${{ steps.release_info.outputs.tag }}
           name: ${{ steps.release_info.outputs.name }}
           prerelease: ${{ steps.release_info.outputs.prerelease == 'true' }}
-          generate_release_notes: true
+          generate_release_notes: false
           body: ${{ steps.changelog.outputs.notes }}
           files: release-build/*.apk

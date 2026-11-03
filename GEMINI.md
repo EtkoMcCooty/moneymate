@@ -34,3 +34,8 @@
   1. The in-app updater properly queries releases from `EtkoMcCooty/moneymate` and displays descriptive feedback if no releases exist or network fails.
   2. Android `<queries>` permissions in `AndroidManifest.xml` allow `url_launcher` to launch browser download URLs (`https` / `http` intents) on Android 11+.
   3. CI/CD release workflow reliably publishes release APK binaries to the public repository.
+
+## 6. User-Facing Changelog & Release Notes
+- **Source of Truth:** Maintain plain-language, jargon-free entries in `CHANGELOG.md` for every release.
+- **Tone:** Describe what the user can do in simple, everyday language (e.g. *"You can now enter an item's amount immediately when adding it"*). Avoid raw git commits, technical symbols, and PR numbers.
+- **Hotfixes:** Urgent fixes and bug patches must explicitly carry the `hotfix:` prefix (e.g. `- hotfix: Fixed due dates showing as '1th' instead of '1st'`).
