@@ -58,7 +58,8 @@ class AppRelease {
   }
 
   /// Sanitizes release notes by removing automated boilerplate, download links,
-  /// and technical changelog links, leaving clean bullet points for the user.
+  /// filtering out internal developer commits, translating conventional commits into
+  /// plain user-friendly language, and preserving the 'hotfix:' prefix for hotfixes.
   static String cleanReleaseNotes(String raw) {
     if (raw.trim().isEmpty) {
       return '• General performance improvements and bug fixes.';
@@ -71,28 +72,70 @@ class AppRelease {
       final trimmed = line.trim();
       if (trimmed.isEmpty) continue;
 
-      // Filter out generic automated build lines and download headers
+      // Filter out generic automated build lines, markdown footers, and download headers
       if (trimmed.startsWith('Automated MoneyMate build') ||
           trimmed.startsWith('### 📱 Download') ||
           trimmed.startsWith('Direct APK download') ||
           trimmed.startsWith('**Full Changelog**') ||
           trimmed.startsWith('* Full Changelog') ||
           trimmed.startsWith('Full Changelog:') ||
-          trimmed.startsWith('See full changelog')) {
+          trimmed.startsWith('See full changelog') ||
+          (trimmed.contains('https://github.com/') && trimmed.contains('/compare/'))) {
         continue;
       }
 
-      // Format bullet points cleanly
-      if (trimmed.startsWith('* ') || trimmed.startsWith('- ')) {
-        cleanedLines.add('• ${trimmed.substring(2).trim()}');
-      } else if (trimmed.startsWith('### ') || trimmed.startsWith('## ')) {
+      // Filter out internal developer commits (docs, chore, ci, test, style)
+      final devPattern = RegExp(
+        r'^[\*\-•]?\s*(docs|chore|ci|test|style)(\([^)]*\))?:',
+        caseSensitive: false,
+      );
+      if (devPattern.hasMatch(trimmed)) {
+        continue;
+      }
+
+      // Handle markdown headers (e.g. ### What's New)
+      if (trimmed.startsWith('### ') || trimmed.startsWith('## ')) {
         final headerText = trimmed.replaceFirst(RegExp(r'^#+\s*'), '').trim();
         if (!headerText.toLowerCase().contains('download')) {
           cleanedLines.add(headerText);
         }
-      } else {
-        cleanedLines.add(trimmed);
+        continue;
       }
+
+      // Strip leading bullet symbol (*, -, •)
+      var content = trimmed;
+      if (content.startsWith('* ') || content.startsWith('- ') || content.startsWith('• ')) {
+        content = content.substring(2).trim();
+      }
+
+      // Check if it's a hotfix
+      final hotfixPattern = RegExp(r'^(hotfix|fix\([^)]*hotfix[^)]*\)):\s*', caseSensitive: false);
+      final isHotfix = hotfixPattern.hasMatch(content) || content.toLowerCase().startsWith('hotfix:');
+
+      if (isHotfix) {
+        var hotfixText = content.replaceFirst(hotfixPattern, '').trim();
+        if (hotfixText.toLowerCase().startsWith('hotfix:')) {
+          hotfixText = hotfixText.substring(7).trim();
+        }
+        hotfixText = _stripPrSuffix(hotfixText);
+        hotfixText = _capitalize(hotfixText);
+        cleanedLines.add('• hotfix: $hotfixText');
+        continue;
+      }
+
+      // Check if it's a conventional commit (feat, fix, perf, refactor)
+      final convPattern = RegExp(r'^(feat|fix|perf|refactor)(\([^)]*\))?:\s*', caseSensitive: false);
+      if (convPattern.hasMatch(content)) {
+        var userText = content.replaceFirst(convPattern, '').trim();
+        userText = _stripPrSuffix(userText);
+        userText = _capitalize(userText);
+        cleanedLines.add('• $userText');
+        continue;
+      }
+
+      // Standard user-written bullet point
+      content = _stripPrSuffix(content);
+      cleanedLines.add('• $content');
     }
 
     if (cleanedLines.isEmpty) {
@@ -100,6 +143,15 @@ class AppRelease {
     }
 
     return cleanedLines.join('\n');
+  }
+
+  static String _stripPrSuffix(String text) {
+    return text.replaceAll(RegExp(r'\s*\([#\d\s,]+\)$'), '').trim();
+  }
+
+  static String _capitalize(String text) {
+    if (text.isEmpty) return text;
+    return text[0].toUpperCase() + text.substring(1);
   }
 
   static String _cleanVersionString(String raw) {

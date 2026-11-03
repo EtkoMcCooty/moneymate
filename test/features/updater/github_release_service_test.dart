@@ -47,18 +47,28 @@ Direct APK download: [app-release.apk](app-release.apk)
       expect(cleaned, isNot(contains('Download & Sideload')));
     });
 
-    test('cleanReleaseNotes formats commits and headers cleanly', () {
-      const realChangelog = '''
+    test('cleanReleaseNotes formats commits into user-friendly bullet points and preserves hotfix prefix', () {
+      const mixedChangelog = '''
 ### 🚀 What's New
-* feat(tracker): add category color coding
+* feat(tracker): add category color coding (#12)
 * fix(dialog): correct due date ordinal
+* hotfix: resolve crash when opening settings (#15)
+* docs(rules): enforce zero-guesswork defect elimination
+* chore(deps): bump flutter packages
+* ci(actions): update workflow permissions
+- Users can now delete items directly from the tracker
 
 **Full Changelog**: https://github.com/EtkoMcCooty/moneymate/commits/v0.2.0
 ''';
-      final cleaned = AppRelease.cleanReleaseNotes(realChangelog);
+      final cleaned = AppRelease.cleanReleaseNotes(mixedChangelog);
       expect(cleaned, contains('🚀 What\'s New'));
-      expect(cleaned, contains('• feat(tracker): add category color coding'));
-      expect(cleaned, contains('• fix(dialog): correct due date ordinal'));
+      expect(cleaned, contains('• Add category color coding'));
+      expect(cleaned, contains('• Correct due date ordinal'));
+      expect(cleaned, contains('• hotfix: Resolve crash when opening settings'));
+      expect(cleaned, contains('• Users can now delete items directly from the tracker'));
+      expect(cleaned, isNot(contains('docs(rules)')));
+      expect(cleaned, isNot(contains('chore(deps)')));
+      expect(cleaned, isNot(contains('ci(actions)')));
       expect(cleaned, isNot(contains('Full Changelog')));
     });
 
