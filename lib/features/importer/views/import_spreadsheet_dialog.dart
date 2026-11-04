@@ -230,12 +230,27 @@ class _ImportSpreadsheetDialogState
     ImportWorkflowNotifier notifier,
     ThemeData theme,
   ) {
-    final sheet = state.parsedSpreadsheet!.sheets[state.selectedSheetIndex];
+    final parsed = state.parsedSpreadsheet;
+    final sheetCount = parsed?.sheets.length ?? 1;
+    final totalMonths = parsed?.totalPeriodMonths ?? 0;
+    final activeSheet = (parsed != null &&
+            state.selectedSheetIndex < parsed.sheets.length)
+        ? parsed.sheets[state.selectedSheetIndex]
+        : null;
+    final activeMonthCount = state.isAllSheetsMode
+        ? totalMonths
+        : (activeSheet?.periodHeaders.length ?? 0);
+
     final activeCount = state.mappings.where((m) => !m.isExcluded).length;
-    final ambiguousCount = state.mappings.where((m) => m.isAmbiguous && !m.isExcluded).length;
+    final ambiguousCount =
+        state.mappings.where((m) => m.isAmbiguous && !m.isExcluded).length;
 
     // Available categories list including defaults
     final categoryOptions = _getCategoryOptions(state.availableCategories);
+
+    final subtitleText = sheetCount > 1
+        ? '${state.fileName ?? 'Spreadsheet'} • $totalMonths months found across $sheetCount years'
+        : '${state.fileName ?? 'Spreadsheet'} • $activeMonthCount months found';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -253,7 +268,7 @@ class _ImportSpreadsheetDialogState
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '${state.fileName ?? 'Spreadsheet'} • ${sheet.periodHeaders.length} months found',
+                    subtitleText,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -270,6 +285,36 @@ class _ImportSpreadsheetDialogState
             ),
           ],
         ),
+        if (sheetCount > 1 && parsed != null) ...[
+          const SizedBox(height: 10),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                ChoiceChip(
+                  key: const Key('sheet_chip_all'),
+                  label: Text('All ($totalMonths mos)'),
+                  selected: state.isAllSheetsMode,
+                  onSelected: (_) => notifier.selectAllSheets(),
+                ),
+                ...parsed.sheets.asMap().entries.map((entry) {
+                  final idx = entry.key;
+                  final s = entry.value;
+                  return Padding(
+                    padding: const EdgeInsets.only(left: 6),
+                    child: ChoiceChip(
+                      key: Key('sheet_chip_$idx'),
+                      label: Text('${s.name} (${s.periodHeaders.length} mos)'),
+                      selected: !state.isAllSheetsMode &&
+                          state.selectedSheetIndex == idx,
+                      onSelected: (_) => notifier.selectSheet(idx),
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
+        ],
         if (ambiguousCount > 0) ...[
           const SizedBox(height: 12),
           Container(

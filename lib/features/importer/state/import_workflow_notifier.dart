@@ -115,13 +115,17 @@ class ImportWorkflowNotifier extends StateNotifier<ImportWorkflowState> {
         return false;
       }
 
-      final activeSheet = parsed.sheets.first;
-      final mappings = _buildMappingsForSheet(activeSheet);
+      final hasMultipleSheets = parsed.sheets.length > 1;
+      final isAllSheets = hasMultipleSheets;
+      final mappings = isAllSheets
+          ? _buildCombinedMappings(parsed.sheets)
+          : _buildMappingsForSheet(parsed.sheets.first);
 
       state = state.copyWith(
         step: ImportStep.reviewing,
         parsedSpreadsheet: parsed,
         selectedSheetIndex: 0,
+        isAllSheetsMode: isAllSheets,
         mappings: mappings,
       );
       return true;
@@ -158,6 +162,59 @@ class ImportWorkflowNotifier extends StateNotifier<ImportWorkflowState> {
       ));
     }
     return mappings;
+  }
+
+  List<ImportRowMapping> _buildCombinedMappings(List<ParsedSheet> sheets) {
+    final combinedMap = <String, ImportRowMapping>{};
+
+    for (final sheet in sheets) {
+      for (var i = 0; i < sheet.rows.length; i++) {
+        final row = sheet.rows[i];
+        final match = _matcherService.matchLabel(
+          row.rawLabel,
+          rawCategoryHint: row.rawCategory,
+          availableCategories: state.availableCategories,
+        );
+
+        final key =
+            '${match.cleanName.trim().toLowerCase()}::${match.suggestedCategoryName.trim().toLowerCase()}';
+
+        if (combinedMap.containsKey(key)) {
+          final existing = combinedMap[key]!;
+          final updatedPeriods =
+              Map<String, ParsedCell>.from(existing.periodValues);
+
+          for (final entry in row.periodValues.entries) {
+            if (!updatedPeriods.containsKey(entry.key) ||
+                (updatedPeriods[entry.key]?.amount == null &&
+                    entry.value.amount != null)) {
+              updatedPeriods[entry.key] = entry.value;
+            }
+          }
+
+          combinedMap[key] = existing.copyWith(
+            periodValues: updatedPeriods,
+            dueDay: existing.dueDay ?? match.dueDay,
+            isDebt: existing.isDebt || match.isDebt,
+          );
+        } else {
+          combinedMap[key] = ImportRowMapping(
+            rowIndex: combinedMap.length,
+            originalLabel: row.rawLabel,
+            cleanName: match.cleanName,
+            dueDay: match.dueDay,
+            targetCategoryName: match.suggestedCategoryName,
+            targetCategoryType: match.suggestedCategoryType,
+            targetCategoryId: match.matchedCategoryId,
+            isDebt: match.isDebt,
+            isAmbiguous: match.isAmbiguous,
+            periodValues: Map<String, ParsedCell>.from(row.periodValues),
+          );
+        }
+      }
+    }
+
+    return combinedMap.values.toList();
   }
 
   /// Updates the target category for a specific row mapping.
@@ -210,6 +267,18 @@ class ImportWorkflowNotifier extends StateNotifier<ImportWorkflowState> {
 
     state = state.copyWith(
       selectedSheetIndex: sheetIndex,
+      isAllSheetsMode: false,
+      mappings: mappings,
+    );
+  }
+
+  /// Switches review view to combined mode across all sheets.
+  void selectAllSheets() {
+    if (state.parsedSpreadsheet == null) return;
+
+    final mappings = _buildCombinedMappings(state.parsedSpreadsheet!.sheets);
+    state = state.copyWith(
+      isAllSheetsMode: true,
       mappings: mappings,
     );
   }
@@ -248,13 +317,19 @@ class ImportWorkflowNotifier extends StateNotifier<ImportWorkflowState> {
         }
       }
 
-      final activeSheet =
-          state.parsedSpreadsheet!.sheets[state.selectedSheetIndex];
+      final List<ParsedPeriodHeader> periodHeaders;
+      if (state.isAllSheetsMode) {
+        periodHeaders = state.parsedSpreadsheet!.allPeriodHeaders;
+      } else {
+        final activeSheet =
+            state.parsedSpreadsheet!.sheets[state.selectedSheetIndex];
+        periodHeaders = activeSheet.periodHeaders;
+      }
 
       final summary = await _commitService.commitImport(
         trackerId: trackerId,
         mappings: state.mappings,
-        periodHeaders: activeSheet.periodHeaders,
+        periodHeaders: periodHeaders,
       );
 
       state = state.copyWith(

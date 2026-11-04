@@ -99,6 +99,7 @@ class ImportWorkflowState {
   final Uint8List? fileBytes;
   final ParsedSpreadsheet? parsedSpreadsheet;
   final int selectedSheetIndex;
+  final bool isAllSheetsMode;
   final List<ImportRowMapping> mappings;
   final List<AvailableCategory> availableCategories;
   final String? errorMessage;
@@ -110,6 +111,7 @@ class ImportWorkflowState {
     this.fileBytes,
     this.parsedSpreadsheet,
     this.selectedSheetIndex = 0,
+    this.isAllSheetsMode = false,
     this.mappings = const [],
     this.availableCategories = const [],
     this.errorMessage,
@@ -122,6 +124,7 @@ class ImportWorkflowState {
     Uint8List? fileBytes,
     ParsedSpreadsheet? parsedSpreadsheet,
     int? selectedSheetIndex,
+    bool? isAllSheetsMode,
     List<ImportRowMapping>? mappings,
     List<AvailableCategory>? availableCategories,
     String? errorMessage,
@@ -133,6 +136,7 @@ class ImportWorkflowState {
       fileBytes: fileBytes ?? this.fileBytes,
       parsedSpreadsheet: parsedSpreadsheet ?? this.parsedSpreadsheet,
       selectedSheetIndex: selectedSheetIndex ?? this.selectedSheetIndex,
+      isAllSheetsMode: isAllSheetsMode ?? this.isAllSheetsMode,
       mappings: mappings ?? this.mappings,
       availableCategories: availableCategories ?? this.availableCategories,
       errorMessage: errorMessage,
