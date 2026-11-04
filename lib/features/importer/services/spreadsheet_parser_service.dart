@@ -167,7 +167,7 @@ class SpreadsheetParserService {
   }
 
   /// Normalizes a human-readable or formatted period header into a standard format (e.g. 2026-01).
-  String normalizePeriodHeader(String header) {
+  String normalizePeriodHeader(String header, {int? referenceYear}) {
     final trimmed = header.trim();
     final lower = trimmed.toLowerCase();
 
@@ -207,7 +207,71 @@ class SpreadsheetParserService {
       }
     }
 
-    return trimmed;
+    // Check date spans / pay cycle ranges (e.g. "Dec 15th - Jan 14th", "Dec 15 - Jan 14", "15/12 - 14/01")
+    if (lower.contains('-') || lower.contains('–')) {
+      final delimiter = lower.contains('–') ? '–' : '-';
+      final parts = lower.split(delimiter);
+      if (parts.length >= 2) {
+        final startPart = parts[0].trim();
+        final endPart = parts[1].trim();
+
+        int? spanYear;
+        final yearMatch = RegExp(r'\b(20\d{2})\b').firstMatch(endPart) ??
+            RegExp(r'\b(20\d{2})\b').firstMatch(startPart);
+        if (yearMatch != null) {
+          spanYear = int.parse(yearMatch.group(1)!);
+        } else {
+          final yearSlashMatch = RegExp(r'/(\d{2})$').firstMatch(endPart);
+          if (yearSlashMatch != null) {
+            spanYear = 2000 + int.parse(yearSlashMatch.group(1)!);
+          }
+        }
+        spanYear ??= referenceYear ?? DateTime.now().year;
+
+        final endMonth = _extractMonthNumber(endPart);
+        if (endMonth != null) {
+          final m = endMonth.toString().padLeft(2, '0');
+          return '$spanYear-$m';
+        }
+
+        final numDateMatch = RegExp(r'\b\d{1,2}/(\d{1,2})\b').firstMatch(endPart);
+        if (numDateMatch != null) {
+          final m = int.parse(numDateMatch.group(1)!).toString().padLeft(2, '0');
+          return '$spanYear-$m';
+        }
+      }
+    }
+
+    // Check Plain Month Name without Year (e.g. "January", "Jan")
+    final plainMonth = _extractMonthNumber(lower);
+    if (plainMonth != null) {
+      final defaultYear = referenceYear ?? DateTime.now().year;
+      final m = plainMonth.toString().padLeft(2, '0');
+      return '$defaultYear-$m';
+    }
+
+    // Defensive fallback: If string already has YYYY-MM inside it, extract it
+    final embeddedYyyyMm = RegExp(r'\b(20\d{2})[-/](\d{1,2})\b').firstMatch(lower);
+    if (embeddedYyyyMm != null) {
+      final y = embeddedYyyyMm.group(1)!;
+      final m = int.parse(embeddedYyyyMm.group(2)!).toString().padLeft(2, '0');
+      return '$y-$m';
+    }
+
+    // Final safety guarantee: Return valid 7-character period key
+    final defaultYear = referenceYear ?? DateTime.now().year;
+    final currentMonth = DateTime.now().month.toString().padLeft(2, '0');
+    return '$defaultYear-$currentMonth';
+  }
+
+  int? _extractMonthNumber(String text) {
+    for (final entry in _monthNames.entries) {
+      final pattern = RegExp(r'\b' + entry.key + r'[a-z]*\b');
+      if (pattern.hasMatch(text)) {
+        return entry.value;
+      }
+    }
+    return null;
   }
 
   bool _containsAnyMonth(String text) {

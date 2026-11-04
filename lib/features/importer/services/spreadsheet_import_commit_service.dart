@@ -91,10 +91,18 @@ class SpreadsheetImportCommitService {
         for (final period in periodHeaders) {
           final cell = mapping.periodValues[period.rawHeader];
           if (cell != null && cell.amount != null) {
+            var safePeriodKey = period.normalizedKey.trim();
+            if (safePeriodKey.length != 7 ||
+                !RegExp(r'^\d{4}-\d{2}$').hasMatch(safePeriodKey)) {
+              final now = DateTime.now();
+              safePeriodKey =
+                  '${now.year}-${now.month.toString().padLeft(2, '0')}';
+            }
+
             await _db.into(_db.itemEntries).insert(
                   ItemEntriesCompanion.insert(
                     itemId: itemId,
-                    periodKey: period.normalizedKey,
+                    periodKey: safePeriodKey,
                     amount: Value(cell.amount!),
                     extraPayment: const Value(0.0),
                     note: Value(cell.note),
