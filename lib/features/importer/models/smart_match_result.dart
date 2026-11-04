@@ -11,6 +11,18 @@ class AvailableCategory {
   });
 
   @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AvailableCategory &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          name == other.name &&
+          categoryType == other.categoryType;
+
+  @override
+  int get hashCode => Object.hash(id, name, categoryType);
+
+  @override
   String toString() => 'AvailableCategory($id: $name ($categoryType))';
 }
 
