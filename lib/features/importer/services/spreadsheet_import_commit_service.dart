@@ -89,7 +89,8 @@ class SpreadsheetImportCommitService {
 
         // Insert monthly period entries
         for (final period in periodHeaders) {
-          final cell = mapping.periodValues[period.rawHeader];
+          final cell = mapping.periodValues[period.normalizedKey] ??
+              mapping.periodValues[period.rawHeader];
           if (cell != null && cell.amount != null) {
             var safePeriodKey = period.normalizedKey.trim();
             if (safePeriodKey.length != 7 ||

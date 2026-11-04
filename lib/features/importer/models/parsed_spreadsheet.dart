@@ -83,4 +83,23 @@ class ParsedSpreadsheet {
 
   bool get hasErrors => errors.isNotEmpty;
   bool get isEmpty => sheets.isEmpty || sheets.every((s) => s.rows.isEmpty);
+
+  /// Total number of unique period header keys across all sheets.
+  int get totalPeriodMonths => allPeriodHeaders.length;
+
+  /// Returns all unique period headers across all sheets, sorted chronologically.
+  List<ParsedPeriodHeader> get allPeriodHeaders {
+    final seen = <String>{};
+    final result = <ParsedPeriodHeader>[];
+    for (final s in sheets) {
+      for (final p in s.periodHeaders) {
+        if (!seen.contains(p.normalizedKey)) {
+          seen.add(p.normalizedKey);
+          result.add(p);
+        }
+      }
+    }
+    result.sort((a, b) => a.normalizedKey.compareTo(b.normalizedKey));
+    return result;
+  }
 }

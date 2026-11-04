@@ -390,6 +390,21 @@ class SpreadsheetParserService {
       return ParsedSheet(name: sheetName);
     }
 
+    // Extract reference year from sheetName if present (e.g. "2023", "Budget 2024", "23")
+    int? sheetYear;
+    final yearMatch4 = RegExp(r'\b(20\d{2})\b').firstMatch(sheetName);
+    if (yearMatch4 != null) {
+      sheetYear = int.parse(yearMatch4.group(1)!);
+    } else {
+      final yearMatch2 = RegExp(r'\b(?:FY|Year|Budget|\b)?\s*([2-9]\d)\b', caseSensitive: false).firstMatch(sheetName);
+      if (yearMatch2 != null) {
+        final yy = int.tryParse(yearMatch2.group(1)!);
+        if (yy != null && yy >= 20 && yy <= 40) {
+          sheetYear = 2000 + yy;
+        }
+      }
+    }
+
     // Find the header row (first row that contains at least one period header)
     int headerRowIndex = 0;
     List<ParsedPeriodHeader> periodHeaders = [];
@@ -403,7 +418,7 @@ class SpreadsheetParserService {
         if (isPeriodHeader(val)) {
           detected.add(ParsedPeriodHeader(
             rawHeader: val,
-            normalizedKey: normalizePeriodHeader(val),
+            normalizedKey: normalizePeriodHeader(val, referenceYear: sheetYear),
             columnIndex: col,
           ));
         }
@@ -468,9 +483,13 @@ class SpreadsheetParserService {
       for (final period in periodHeaders) {
         if (period.columnIndex < row.length) {
           final cellRaw = row[period.columnIndex];
-          periodMap[period.rawHeader] = parseCell(cellRaw);
+          final parsed = parseCell(cellRaw);
+          periodMap[period.normalizedKey] = parsed;
+          periodMap[period.rawHeader] = parsed;
         } else {
-          periodMap[period.rawHeader] = const ParsedCell(rawValue: '');
+          const emptyCell = ParsedCell(rawValue: '');
+          periodMap[period.normalizedKey] = emptyCell;
+          periodMap[period.rawHeader] = emptyCell;
         }
       }
 
