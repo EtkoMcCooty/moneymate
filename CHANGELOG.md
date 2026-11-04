@@ -3,6 +3,7 @@
 All notable changes to MoneyMate are documented here in plain, user-friendly language.
 
 ## [Unreleased]
+- hotfix: Fixed spreadsheet import error when column headers use date ranges (such as 'Dec 15th - Jan 14th').
 - Added smart category and due date recognition for imported spreadsheet rows (e.g., auto-detecting rent due days and income).
 - Added visible 'Import spreadsheet' button in the Monthly Tracker and Settings.
 - You can now pick and import Excel (.xlsx) and CSV spreadsheets directly from your phone, review and adjust matched categories and recurring due dates before saving, and import multiple months of spending in one tap.
