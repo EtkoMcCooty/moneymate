@@ -5,7 +5,7 @@ All notable changes to MoneyMate are documented here in plain, user-friendly lan
 ## [Unreleased]
 - Added smart category and due date recognition for imported spreadsheet rows (e.g., auto-detecting rent due days and income).
 - Added visible 'Import spreadsheet' button in the Monthly Tracker and Settings.
-- hotfix: Clarified that spreadsheet importing is rolling out (reading engine is active; file selection screen arriving in the next update).
+- You can now pick and import Excel (.xlsx) and CSV spreadsheets directly from your phone, review and adjust matched categories and recurring due dates before saving, and import multiple months of spending in one tap.
 
 ## [v0.1.0+30] - 2026-11-03
 - You can now enter an item's amount immediately when adding it to the tracker.

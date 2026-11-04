@@ -1,7 +1,7 @@
 # Project Roadmap & Execution Ledger (Vertical Slice Architecture)
 
-> **Overall Progress:** 10 / 14 tasks completed (71%)  
-> **Last Updated:** 2026-11-02  
+> **Overall Progress:** 11 / 14 tasks completed (79%)  
+> **Last Updated:** 2026-11-04  
 
 ---
 
@@ -34,7 +34,7 @@
 ### Milestone 4: Spreadsheet Importer Slice (Excel & CSV - End-to-End)
 - [x] [importer-parsers] Spreadsheet File Parsers: File ingestion engine for `.xlsx` and `.csv` files parsing multi-month columns, headers, and values with unit tests.
 - [x] [smart-matcher] Smart Category Matcher: Heuristic rule engine automatically categorizing row labels (e.g. "Rent (29th)" -> Household, day 29; "Wage" -> Income).
-- [ ] [importer-ui-flow] Importer Flow & Review UI: File picker, pre-import category preview/adjustment modal, and atomic database commit.
+- [x] [importer-ui-flow] Importer Flow & Review UI: File picker, pre-import category preview/adjustment modal, and atomic database commit.
 
 ### Milestone 5: Interactive Analytics Dashboard Slice (End-to-End)
 - [ ] [dashboard-analytics-engine] Aggregation Engine: Domain engine computing financial metrics (income, expenses, debt payoff, savings, disposable income) over 3M, 6M, 1Y, and all-time.
