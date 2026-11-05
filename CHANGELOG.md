@@ -3,6 +3,11 @@
 All notable changes to MoneyMate are documented here in plain, user-friendly language.
 
 ## [Unreleased]
+- Added interactive cash flow charts showing your money in, money out, and leftover disposable income over time.
+- Added quick timeframe filters to view insights across 3 months, 6 months, 1 year, and all-time.
+- Added overview summary cards highlighting your monthly disposable income, money in vs. out, savings rate, and remaining debt.
+- Added 'Where your money goes' category spending breakdown showing the percentage and amount spent in each category.
+- You can now tap any point on the cash flow chart to inspect that month's exact numbers and category spending.
 - Added financial aggregation engine computing your money in, money out, savings rate, and leftover disposable income across 3 months, 6 months, 1 year, and all-time.
 - Added debt payoff calculation that tracks remaining debt balances against logged payments.
 - hotfix: Fixed spreadsheet importer duplicating items on re-import, miscategorizing section headers, and updated the tracker header to always display the active month and date span.

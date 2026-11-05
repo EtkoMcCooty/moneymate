@@ -1,6 +1,6 @@
 # Project Roadmap & Execution Ledger (Vertical Slice Architecture)
 
-> **Overall Progress:** 12 / 14 tasks completed (86%)  
+> **Overall Progress:** 13 / 14 tasks completed (93%)  
 > **Last Updated:** 2026-11-05  
 
 ---
@@ -38,7 +38,7 @@
 
 ### Milestone 5: Interactive Analytics Dashboard Slice (End-to-End)
 - [x] [dashboard-analytics-engine] Aggregation Engine: Domain engine computing financial metrics (income, expenses, debt payoff, savings, disposable income) over 3M, 6M, 1Y, and all-time.
-- [ ] [dashboard-charts-ui] Interactive Charts & Visuals: `fl_chart` trend lines, period filters, and category distribution breakdown views.
+- [x] [dashboard-charts-ui] Interactive Charts & Visuals: `fl_chart` trend lines, period filters, and category distribution breakdown views.
 
 ### Milestone 6: E2E Smoke & Production Polish
 - [ ] [e2e-smoke-polish] E2E Verification & Release Polish: Cross-slice smoke tests, empty state polish, edge case validation, and release APK build check.
