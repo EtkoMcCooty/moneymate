@@ -72,6 +72,55 @@ class SpreadsheetParserService {
     'incomes',
   };
 
+  static const Map<String, String> _sectionCategoryKeywords = {
+    'income': 'Income',
+    'incomes': 'Income',
+    'household': 'Household',
+    'households': 'Household',
+    'housing': 'Household',
+    'home': 'Household',
+    'personal': 'Personal',
+    'personal expense': 'Personal',
+    'personal expenses': 'Personal',
+    'living': 'Personal',
+    'living expense': 'Personal',
+    'living expenses': 'Personal',
+    'other': 'Other',
+    'other expense': 'Other',
+    'other expenses': 'Other',
+    'misc': 'Other',
+    'miscellaneous': 'Other',
+    'debt': 'Debts',
+    'debts': 'Debts',
+    'saving': 'Savings',
+    'savings': 'Savings',
+    'investment': 'Investments',
+    'investments': 'Investments',
+  };
+
+  String? _detectInColumnSectionHeader(
+    String label,
+    List<dynamic> row,
+    List<ParsedPeriodHeader> periodHeaders,
+  ) {
+    final lower = label.trim().toLowerCase();
+    final matchedCategory = _sectionCategoryKeywords[lower];
+    if (matchedCategory == null) return null;
+
+    var hasNumericAmount = false;
+    for (final period in periodHeaders) {
+      if (period.columnIndex < row.length) {
+        final val = parseNumericAmount(row[period.columnIndex]);
+        if (val != null) {
+          hasNumericAmount = true;
+          break;
+        }
+      }
+    }
+
+    return hasNumericAmount ? null : matchedCategory;
+  }
+
   /// Parses a numeric currency or numerical value from strings or dynamic cell objects.
   /// Handles currency symbols (£, $, €, ¥), thousands commas, negative values,
   /// accounting parentheses (e.g. (150.00)), and placeholder tokens.
@@ -458,6 +507,7 @@ class SpreadsheetParserService {
 
     final parsedRows = <ParsedRow>[];
     final warnings = <String>[];
+    String? currentSectionCategory;
 
     for (var r = headerRowIndex + 1; r < rows.length; r++) {
       final row = rows[r];
@@ -471,13 +521,30 @@ class SpreadsheetParserService {
 
       // Skip summary / total rows
       final lowerLabel = label.toLowerCase();
-      if (lowerLabel == 'total' || lowerLabel == 'totals' || lowerLabel == 'summary' || lowerLabel == 'average') {
+      if (lowerLabel == 'total' ||
+          lowerLabel == 'totals' ||
+          lowerLabel == 'summary' ||
+          lowerLabel == 'average' ||
+          lowerLabel.endsWith(' total') ||
+          lowerLabel.startsWith('total ') ||
+          lowerLabel.contains('summary') ||
+          lowerLabel.contains('disposable income') ||
+          lowerLabel.contains('leftover')) {
         continue;
+      }
+
+      // If there is no explicit Category column, detect in-column section divider headers
+      if (categoryColIndex == null) {
+        final sectionHeader = _detectInColumnSectionHeader(label, row, periodHeaders);
+        if (sectionHeader != null) {
+          currentSectionCategory = sectionHeader;
+          continue;
+        }
       }
 
       final category = categoryColIndex != null && categoryColIndex < row.length
           ? row[categoryColIndex]?.toString().trim()
-          : null;
+          : currentSectionCategory;
 
       final periodMap = <String, ParsedCell>{};
       for (final period in periodHeaders) {

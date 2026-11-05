@@ -194,7 +194,7 @@ class ImportWorkflowNotifier extends StateNotifier<ImportWorkflowState> {
 
           combinedMap[key] = existing.copyWith(
             periodValues: updatedPeriods,
-            dueDay: existing.dueDay ?? match.dueDay,
+            dueDay: match.dueDay ?? existing.dueDay,
             isDebt: existing.isDebt || match.isDebt,
           );
         } else {
@@ -330,6 +330,7 @@ class ImportWorkflowNotifier extends StateNotifier<ImportWorkflowState> {
         trackerId: trackerId,
         mappings: state.mappings,
         periodHeaders: periodHeaders,
+        replaceExisting: true,
       );
 
       state = state.copyWith(

@@ -242,12 +242,12 @@ class SmartMatcherService {
     }
 
     // Heuristic keyword matching
-    if (_matchesAny(lowerName, _incomeKeywords)) {
-      return const _Classification('Income', 'income', 0.9);
-    }
-
     if (_matchesAny(lowerName, _debtKeywords)) {
       return const _Classification('Debts', 'debt', 0.9);
+    }
+
+    if (_matchesAny(lowerName, _incomeKeywords)) {
+      return const _Classification('Income', 'income', 0.9);
     }
 
     if (_matchesAny(lowerName, _householdKeywords)) {
