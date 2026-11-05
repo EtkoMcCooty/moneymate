@@ -1,5 +1,5 @@
 import 'dart:math';
-import 'package:flutter/material.dart' hide Category;
+import 'package:flutter/material.dart';
 
 import '../../../core/database/app_database.dart';
 import '../../../core/theme/app_theme.dart';

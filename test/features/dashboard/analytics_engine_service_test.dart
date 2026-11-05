@@ -1,4 +1,3 @@
-import 'package:drift/drift.dart' hide isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:moneymate/core/database/app_database.dart';
 import 'package:moneymate/features/dashboard/models/analytics_models.dart';
