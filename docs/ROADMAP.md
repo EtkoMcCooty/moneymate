@@ -1,7 +1,7 @@
 # Project Roadmap & Execution Ledger (Vertical Slice Architecture)
 
-> **Overall Progress:** 11 / 14 tasks completed (79%)  
-> **Last Updated:** 2026-11-04  
+> **Overall Progress:** 12 / 14 tasks completed (86%)  
+> **Last Updated:** 2026-11-05  
 
 ---
 
@@ -37,7 +37,7 @@
 - [x] [importer-ui-flow] Importer Flow & Review UI: File picker, pre-import category preview/adjustment modal, and atomic database commit.
 
 ### Milestone 5: Interactive Analytics Dashboard Slice (End-to-End)
-- [ ] [dashboard-analytics-engine] Aggregation Engine: Domain engine computing financial metrics (income, expenses, debt payoff, savings, disposable income) over 3M, 6M, 1Y, and all-time.
+- [x] [dashboard-analytics-engine] Aggregation Engine: Domain engine computing financial metrics (income, expenses, debt payoff, savings, disposable income) over 3M, 6M, 1Y, and all-time.
 - [ ] [dashboard-charts-ui] Interactive Charts & Visuals: `fl_chart` trend lines, period filters, and category distribution breakdown views.
 
 ### Milestone 6: E2E Smoke & Production Polish

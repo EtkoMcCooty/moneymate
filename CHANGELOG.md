@@ -3,6 +3,8 @@
 All notable changes to MoneyMate are documented here in plain, user-friendly language.
 
 ## [Unreleased]
+- Added financial aggregation engine computing your money in, money out, savings rate, and leftover disposable income across 3 months, 6 months, 1 year, and all-time.
+- Added debt payoff calculation that tracks remaining debt balances against logged payments.
 - hotfix: Fixed spreadsheet importer duplicating items on re-import, miscategorizing section headers, and updated the tracker header to always display the active month and date span.
 - hotfix: Fixed spreadsheet importer only detecting 12 months when workbooks contain multiple yearly tabs; you can now review each year or import all years at once.
 - hotfix: Fixed spreadsheet import error when column headers use date ranges (such as 'Dec 15th - Jan 14th').
