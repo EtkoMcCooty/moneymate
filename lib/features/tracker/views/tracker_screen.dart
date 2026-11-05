@@ -170,7 +170,21 @@ class TrackerScreen extends ConsumerWidget {
     return Scaffold(
       key: const Key('tracker_screen_content'),
       appBar: AppBar(
-        title: const Text('Monthly Tracker'),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Monthly Tracker'),
+            if (ledgerState.selectedPeriodKey.isNotEmpty)
+              Text(
+                '${PayCycleService.formatPeriodTitle(ledgerState.selectedPeriodKey)} • ${PayCycleService.formatPeriodDateSpan(ledgerState.selectedPeriodKey, ledgerState.cycleStartDay)}',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.normal,
+                    ),
+              ),
+          ],
+        ),
         actions: [
           IconButton(
             key: const Key('tracker_import_spreadsheet_button'),

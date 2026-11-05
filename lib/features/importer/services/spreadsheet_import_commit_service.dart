@@ -28,6 +28,7 @@ class SpreadsheetImportCommitService {
     required int trackerId,
     required List<ImportRowMapping> mappings,
     required List<ParsedPeriodHeader> periodHeaders,
+    bool replaceExisting = true,
   }) async {
     return _db.transaction<ImportSummaryResult>(() async {
       // 1. Fetch existing categories for tracker
@@ -62,29 +63,84 @@ class SpreadsheetImportCommitService {
         }
       }
 
-      // 3. Insert line items, debts, and period entries
+      // 3. If replacing existing items, clean up previous items and entries for tracker
+      if (replaceExisting) {
+        final allCatIds = categoryCache.values.toList();
+        final existingTrackerItems = await (_db.select(_db.financeItems)
+              ..where((i) => i.categoryId.isIn(allCatIds)))
+            .get();
+        final existingItemIds = existingTrackerItems.map((i) => i.id).toList();
+
+        if (existingItemIds.isNotEmpty) {
+          await (_db.delete(_db.itemEntries)
+                ..where((e) => e.itemId.isIn(existingItemIds)))
+              .go();
+          await (_db.delete(_db.debtMetadata)
+                ..where((d) => d.itemId.isIn(existingItemIds)))
+              .go();
+          await (_db.delete(_db.financeItems)
+                ..where((i) => i.id.isIn(existingItemIds)))
+              .go();
+        }
+      }
+
+      // Cache existing items by categoryId::cleanName
+      final allCatIds = categoryCache.values.toList();
+      final existingTrackerItems = await (_db.select(_db.financeItems)
+            ..where((i) => i.categoryId.isIn(allCatIds)))
+          .get();
+      final existingItemsByCatAndName = <String, FinanceItem>{};
+      for (final it in existingTrackerItems) {
+        existingItemsByCatAndName['${it.categoryId}::${it.name.trim().toLowerCase()}'] = it;
+      }
+
+      // 4. Insert or update line items, debts, and period entries
       for (final mapping in activeMappings) {
         final lowerCat = mapping.targetCategoryName.trim().toLowerCase();
         final categoryId = categoryCache[lowerCat]!;
         affectedCategoryIds.add(categoryId);
 
-        final itemId = await _db.into(_db.financeItems).insert(
-              FinanceItemsCompanion.insert(
-                categoryId: categoryId,
-                name: mapping.cleanName.trim(),
-                dueDay: Value(mapping.dueDay),
-              ),
-            );
+        final itemKey = '$categoryId::${mapping.cleanName.trim().toLowerCase()}';
+        int itemId;
+
+        if (existingItemsByCatAndName.containsKey(itemKey)) {
+          final existingItem = existingItemsByCatAndName[itemKey]!;
+          itemId = existingItem.id;
+          if (mapping.dueDay != null && mapping.dueDay != existingItem.dueDay) {
+            await (_db.update(_db.financeItems)..where((i) => i.id.equals(itemId)))
+                .write(FinanceItemsCompanion(dueDay: Value(mapping.dueDay)));
+          }
+        } else {
+          itemId = await _db.into(_db.financeItems).insert(
+                FinanceItemsCompanion.insert(
+                  categoryId: categoryId,
+                  name: mapping.cleanName.trim(),
+                  dueDay: Value(mapping.dueDay),
+                ),
+              );
+          existingItemsByCatAndName[itemKey] = FinanceItem(
+            id: itemId,
+            categoryId: categoryId,
+            name: mapping.cleanName.trim(),
+            dueDay: mapping.dueDay,
+            isArchived: false,
+          );
+        }
         insertedItemsCount++;
 
         if (mapping.isDebt) {
-          await _db.into(_db.debtMetadata).insert(
-                DebtMetadataCompanion.insert(
-                  itemId: itemId,
-                  totalPrincipal: const Value(0.0),
-                  interestRate: const Value(0.0),
-                ),
-              );
+          final existingDebt = await (_db.select(_db.debtMetadata)
+                ..where((d) => d.itemId.equals(itemId)))
+              .getSingleOrNull();
+          if (existingDebt == null) {
+            await _db.into(_db.debtMetadata).insert(
+                  DebtMetadataCompanion.insert(
+                    itemId: itemId,
+                    totalPrincipal: const Value(0.0),
+                    interestRate: const Value(0.0),
+                  ),
+                );
+          }
         }
 
         // Insert monthly period entries
@@ -108,6 +164,7 @@ class SpreadsheetImportCommitService {
                     extraPayment: const Value(0.0),
                     note: Value(cell.note),
                   ),
+                  mode: InsertMode.insertOrReplace,
                 );
             insertedEntriesCount++;
           }
