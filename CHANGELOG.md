@@ -3,6 +3,8 @@
 All notable changes to MoneyMate are documented here in plain, user-friendly language.
 
 ## [Unreleased]
+- Redesigned the interface with an executive, modern look and feel featuring physical depth, refined dark mode, tactile button feedback, and tabular numbers for financial figures.
+- Added a visual income allocation progress bar on the Monthly Tracker hero card showing the exact proportion of money going to bills, debts, and savings.
 - Added interactive cash flow charts showing your money in, money out, and leftover disposable income over time.
 - Added quick timeframe filters to view insights across 3 months, 6 months, 1 year, and all-time.
 - Added overview summary cards highlighting your monthly disposable income, money in vs. out, savings rate, and remaining debt.
