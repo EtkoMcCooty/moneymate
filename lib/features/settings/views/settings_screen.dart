@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/theme/craft_decorations.dart';
 import '../../../core/utils/pay_cycle_service.dart';
 import '../../updater/state/update_notifier.dart';
 import '../../updater/state/update_state.dart';
@@ -65,7 +66,6 @@ class SettingsScreen extends ConsumerWidget {
                     initialValue: selectedDay,
                     decoration: const InputDecoration(
                       labelText: 'Payday',
-                      border: OutlineInputBorder(),
                     ),
                     items: List.generate(31, (index) {
                       final day = index + 1;
@@ -85,7 +85,7 @@ class SettingsScreen extends ConsumerWidget {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -153,12 +153,29 @@ class SettingsScreen extends ConsumerWidget {
             final isSelected = symbol == currentSymbol;
             return ListTile(
               title: Text(label),
-              leading: Text(
-                symbol,
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              leading: Container(
+                width: 36,
+                height: 36,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? Theme.of(context).colorScheme.primaryContainer
+                      : Theme.of(context).colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  symbol,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: isSelected
+                        ? Theme.of(context).colorScheme.primary
+                        : null,
+                  ),
+                ),
               ),
               trailing: isSelected
-                  ? Icon(Icons.check,
+                  ? Icon(Icons.check_circle_rounded,
                       color: Theme.of(context).colorScheme.primary)
                   : null,
               onTap: () {
@@ -194,7 +211,6 @@ class SettingsScreen extends ConsumerWidget {
                     decoration: const InputDecoration(
                       labelText: 'Category name',
                       hintText: 'e.g. Subscriptions or Pets',
-                      border: OutlineInputBorder(),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -202,7 +218,6 @@ class SettingsScreen extends ConsumerWidget {
                     initialValue: selectedType,
                     decoration: const InputDecoration(
                       labelText: 'Category group',
-                      border: OutlineInputBorder(),
                     ),
                     items: const [
                       DropdownMenuItem(
@@ -286,6 +301,8 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settingsState = ref.watch(settingsNotifierProvider);
     final updateState = ref.watch(updateNotifierProvider);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     final startDay = settingsState.cycleStartDay;
     final currencySymbol = settingsState.currencySymbol;
@@ -304,163 +321,281 @@ class SettingsScreen extends ConsumerWidget {
           ? const Center(child: CircularProgressIndicator())
           : ListView(
               padding:
-                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
               children: [
                 // Payday & Pay Period Section
-                Text(
-                  'Payday & Pay Period',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                ),
-                const SizedBox(height: 8),
-                Card(
-                  elevation: 0,
-                  color: Theme.of(context).colorScheme.surfaceContainerLow,
-                  child: ListTile(
-                    leading: const Icon(Icons.calendar_month_outlined),
-                    title: const Text('Monthly Payday'),
-                    subtitle: Text(
-                      '${_formatDayOrdinal(startDay)}\nActive period: $periodSpan',
-                    ),
-                    isThreeLine: true,
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => _showPaydayDialog(context, ref, startDay),
+                Padding(
+                  padding: const EdgeInsets.only(left: 4.0, bottom: 8.0),
+                  child: Text(
+                    'Payday & Pay Period',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.3,
+                          color: theme.colorScheme.primary,
+                        ),
                   ),
                 ),
-                const SizedBox(height: 24),
+                Container(
+                  decoration: CraftDecorations.cardShadowDecoration(context),
+                  child: Material(
+                    color: CraftDecorations.surfaceColor(context),
+                    shape: CraftDecorations.cardShape(context),
+                    child: ListTile(
+                      leading: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          Icons.calendar_month_rounded,
+                          color: theme.colorScheme.primary,
+                          size: 20,
+                        ),
+                      ),
+                      title: const Text(
+                        'Monthly Payday',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                      subtitle: Text(
+                        '${_formatDayOrdinal(startDay)}\nActive period: $periodSpan',
+                        style: TextStyle(
+                          color: theme.colorScheme.onSurfaceVariant,
+                          height: 1.3,
+                        ),
+                      ),
+                      isThreeLine: true,
+                      trailing: const Icon(Icons.chevron_right_rounded),
+                      onTap: () => _showPaydayDialog(context, ref, startDay),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
 
                 // Currency Section
-                Text(
-                  'Currency',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                ),
-                const SizedBox(height: 8),
-                Card(
-                  elevation: 0,
-                  color: Theme.of(context).colorScheme.surfaceContainerLow,
-                  child: ListTile(
-                    leading: const Icon(Icons.payments_outlined),
-                    title: const Text('Default Currency'),
-                    subtitle: Text('Current symbol: $currencySymbol'),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () =>
-                        _showCurrencyDialog(context, ref, currencySymbol),
+                Padding(
+                  padding: const EdgeInsets.only(left: 4.0, bottom: 8.0),
+                  child: Text(
+                    'Currency',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.3,
+                          color: theme.colorScheme.primary,
+                        ),
                   ),
                 ),
-                const SizedBox(height: 24),
+                Container(
+                  decoration: CraftDecorations.cardShadowDecoration(context),
+                  child: Material(
+                    color: CraftDecorations.surfaceColor(context),
+                    shape: CraftDecorations.cardShape(context),
+                    child: ListTile(
+                      leading: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.secondary.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          Icons.payments_rounded,
+                          color: theme.colorScheme.secondary,
+                          size: 20,
+                        ),
+                      ),
+                      title: const Text(
+                        'Default Currency',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                      subtitle: Text(
+                        'Current symbol: $currencySymbol',
+                        style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+                      ),
+                      trailing: const Icon(Icons.chevron_right_rounded),
+                      onTap: () =>
+                          _showCurrencyDialog(context, ref, currencySymbol),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
 
                 // Spending Categories Section
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Spending Categories',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                    ),
-                    TextButton.icon(
-                      onPressed: () => _showAddCategoryDialog(context, ref),
-                      icon: const Icon(Icons.add, size: 18),
-                      label: const Text('Add'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Card(
-                  elevation: 0,
-                  color: Theme.of(context).colorScheme.surfaceContainerLow,
-                  child: Column(
+                Padding(
+                  padding: const EdgeInsets.only(left: 4.0, bottom: 8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      for (var i = 0; i < settingsState.categories.length; i++) ...[
-                        if (i > 0) const Divider(height: 1),
-                        ListTile(
-                          title: Text(settingsState.categories[i].name),
-                          subtitle: Text(
-                            _formatCategoryTypeLabel(
-                                settingsState.categories[i].categoryType),
-                          ),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.delete_outline, size: 20),
-                            tooltip: 'Delete category',
-                            onPressed: () {
-                              ref
-                                  .read(settingsNotifierProvider.notifier)
-                                  .deleteCategory(
-                                      settingsState.categories[i].id);
-                            },
-                          ),
+                      Text(
+                        'Spending Categories',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.3,
+                              color: theme.colorScheme.primary,
+                            ),
+                      ),
+                      TextButton.icon(
+                        onPressed: () => _showAddCategoryDialog(context, ref),
+                        icon: const Icon(Icons.add_rounded, size: 18),
+                        label: const Text(
+                          'Add',
+                          style: TextStyle(fontWeight: FontWeight.w700),
                         ),
-                      ],
+                      ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                Container(
+                  decoration: CraftDecorations.cardShadowDecoration(context),
+                  child: Material(
+                    color: CraftDecorations.surfaceColor(context),
+                    shape: CraftDecorations.cardShape(context),
+                    clipBehavior: Clip.antiAlias,
+                    child: Column(
+                      children: [
+                        for (var i = 0; i < settingsState.categories.length; i++) ...[
+                          if (i > 0)
+                            Divider(
+                              height: 1,
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.06)
+                                  : Colors.black.withValues(alpha: 0.05),
+                            ),
+                          ListTile(
+                            title: Text(
+                              settingsState.categories[i].name,
+                              style: const TextStyle(fontWeight: FontWeight.w700),
+                            ),
+                            subtitle: Text(
+                              _formatCategoryTypeLabel(
+                                  settingsState.categories[i].categoryType),
+                              style: TextStyle(
+                                  color: theme.colorScheme.onSurfaceVariant),
+                            ),
+                            trailing: IconButton(
+                              icon: Icon(
+                                Icons.delete_outline_rounded,
+                                size: 20,
+                                color: theme.colorScheme.error,
+                              ),
+                              tooltip: 'Delete category',
+                              onPressed: () {
+                                ref
+                                    .read(settingsNotifierProvider.notifier)
+                                    .deleteCategory(
+                                        settingsState.categories[i].id);
+                              },
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
 
                 // Data & Spreadsheets Section
-                Text(
-                  'Data & Spreadsheets',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                ),
-                const SizedBox(height: 8),
-                Card(
-                  elevation: 0,
-                  color: Theme.of(context).colorScheme.surfaceContainerLow,
-                  child: ListTile(
-                    key: const Key('settings_import_spreadsheet_tile'),
-                    leading: const Icon(Icons.upload_file_outlined),
-                    title: const Text('Import spreadsheet'),
-                    subtitle: const Text(
-                      'Import from Excel (.xlsx) or CSV budget file',
-                    ),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => ImportSpreadsheetDialog.show(context),
+                Padding(
+                  padding: const EdgeInsets.only(left: 4.0, bottom: 8.0),
+                  child: Text(
+                    'Data & Spreadsheets',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.3,
+                          color: theme.colorScheme.primary,
+                        ),
                   ),
                 ),
-                const SizedBox(height: 24),
+                Container(
+                  decoration: CraftDecorations.cardShadowDecoration(context),
+                  child: Material(
+                    color: CraftDecorations.surfaceColor(context),
+                    shape: CraftDecorations.cardShape(context),
+                    child: ListTile(
+                      key: const Key('settings_import_spreadsheet_tile'),
+                      leading: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          Icons.upload_file_rounded,
+                          color: theme.colorScheme.primary,
+                          size: 20,
+                        ),
+                      ),
+                      title: const Text(
+                        'Import spreadsheet',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                      subtitle: Text(
+                        'Import from Excel (.xlsx) or CSV budget file',
+                        style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+                      ),
+                      trailing: const Icon(Icons.chevron_right_rounded),
+                      onTap: () => ImportSpreadsheetDialog.show(context),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
 
                 // App Updates & Version Section
-                Text(
-                  'App Updates',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                ),
-                const SizedBox(height: 8),
-                Card(
-                  elevation: 0,
-                  color: Theme.of(context).colorScheme.surfaceContainerLow,
-                  child: ListTile(
-                    leading: const Icon(Icons.system_update_rounded),
-                    title: const Text('Check for updates'),
-                    subtitle: Text(
-                      updateState.currentVersion != null
-                          ? 'Version ${updateState.currentVersion}'
-                          : 'Download the latest version',
-                    ),
-                    trailing: updateState.status == UpdateStatus.checking
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.chevron_right),
-                    onTap: updateState.status == UpdateStatus.checking
-                        ? null
-                        : () => _checkUpdates(context, ref),
+                Padding(
+                  padding: const EdgeInsets.only(left: 4.0, bottom: 8.0),
+                  child: Text(
+                    'App Updates',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.3,
+                          color: theme.colorScheme.primary,
+                        ),
                   ),
                 ),
-                const SizedBox(height: 32),
+                Container(
+                  decoration: CraftDecorations.cardShadowDecoration(context),
+                  child: Material(
+                    color: CraftDecorations.surfaceColor(context),
+                    shape: CraftDecorations.cardShape(context),
+                    child: ListTile(
+                      leading: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          Icons.system_update_rounded,
+                          color: theme.colorScheme.primary,
+                          size: 20,
+                        ),
+                      ),
+                      title: const Text(
+                        'Check for updates',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                      subtitle: Text(
+                        updateState.currentVersion != null
+                            ? 'Version ${updateState.currentVersion}'
+                            : 'Download the latest version',
+                        style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+                      ),
+                      trailing: updateState.status == UpdateStatus.checking
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.chevron_right_rounded),
+                      onTap: updateState.status == UpdateStatus.checking
+                          ? null
+                          : () => _checkUpdates(context, ref),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 36),
               ],
             ),
     );

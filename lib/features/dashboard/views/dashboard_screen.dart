@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/theme/craft_decorations.dart';
 import '../models/analytics_models.dart';
 import '../state/dashboard_notifier.dart';
 import 'widgets/category_breakdown_section.dart';
 import 'widgets/dashboard_kpi_cards.dart';
 import 'widgets/dashboard_trend_chart.dart';
 
-/// Screen displaying financial analytics, trend charts, and category breakdown.
+/// Screen displaying financial analytics, trend charts, and category breakdown
+/// with modern surface layering and responsive visual hierarchy.
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
@@ -46,16 +48,25 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.error_outline,
-                      size: 48,
-                      color: Theme.of(context).colorScheme.error,
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.error.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.error_outline_rounded,
+                        size: 40,
+                        color: Theme.of(context).colorScheme.error,
+                      ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     Text(
                       state.errorMessage!,
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w500,
+                          ),
                     ),
                     const SizedBox(height: 16),
                     FilledButton.tonal(
@@ -78,16 +89,24 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.insights_outlined,
-                      size: 64,
-                      color: Theme.of(context).colorScheme.primary,
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.insights_rounded,
+                        size: 48,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 20),
                     Text(
                       'No tracking data yet',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.4,
                           ),
                     ),
                     const SizedBox(height: 8),
@@ -96,6 +115,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w500,
                           ),
                     ),
                   ],
@@ -120,7 +140,21 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       return Padding(
                         padding: const EdgeInsets.only(right: 8.0),
                         child: ChoiceChip(
+                          showCheckmark: false,
                           label: Text(timeframe.label),
+                          labelStyle: TextStyle(
+                            fontSize: 12,
+                            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                            letterSpacing: -0.2,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(100),
+                            side: BorderSide(
+                              color: isSelected
+                                  ? Theme.of(context).colorScheme.primary
+                                  : CraftDecorations.borderSide(context).color,
+                            ),
+                          ),
                           selected: isSelected,
                           onSelected: (_) {
                             ref
@@ -133,7 +167,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   ),
                 ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
 
                 // KPI Overview Cards
                 DashboardKpiCards(
@@ -141,7 +175,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   currencySymbol: state.currencySymbol,
                 ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
 
                 // Trend Lines Chart
                 DashboardTrendChart(
@@ -155,7 +189,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   },
                 ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
 
                 // Category Spending Allocations ("Where your money goes")
                 CategoryBreakdownSection(
