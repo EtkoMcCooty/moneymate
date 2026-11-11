@@ -1,6 +1,6 @@
 # Project Roadmap & Execution Ledger (Vertical Slice Architecture)
 
-> **Overall Progress:** 13 / 19 tasks completed (68%)  
+> **Overall Progress:** 14 / 19 tasks completed (74%)  
 > **Last Updated:** 2026-11-11  
 
 ---
@@ -41,7 +41,7 @@
 - [x] [dashboard-charts-ui] Interactive Charts & Visuals: `fl_chart` trend lines, period filters, and category distribution breakdown views.
 
 ### Milestone 6: Post-Review UX Polish & Production Readiness
-- [ ] [pay-cycle-date-alignment] Pay Cycle Date Alignment: Map date spans (e.g. 15 Oct – 14 Nov) to starting month (`2026-10`) in math engine and importer parser.
+- [x] [pay-cycle-date-alignment] Pay Cycle Date Alignment: Map date spans (e.g. 15 Oct – 14 Nov) to starting month (`2026-10`) in math engine and importer parser.
 - [ ] [dark-mode-theme] Dark Mode Option: Theme mode toggle (System, Light, Dark) in Settings with SQLite persistence and reactive switching.
 - [ ] [tracker-month-filter] Tracker Month Quick-Jump: Month picker sheet in Tracker header for rapid navigation across multi-year cycles.
 - [ ] [dashboard-month-filter] Dashboard Month Filter: Support single-month breakdown view alongside 3M/6M/1Y/All-Time trends.
