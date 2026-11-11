@@ -1,14 +1,14 @@
 # Project Roadmap & Execution Ledger (Vertical Slice Architecture)
 
-> **Overall Progress:** 13 / 14 tasks completed (93%)  
-> **Last Updated:** 2026-11-05  
+> **Overall Progress:** 13 / 19 tasks completed (68%)  
+> **Last Updated:** 2026-11-11  
 
 ---
 
 ## 📌 Branch, PR & Architecture Conventions
 - **Vertical Slices:** Each milestone delivers end-to-end, testable user value (UI screen, business logic, and backing storage delivered together).
-- **Feature Branches:** `feat/<slug>` (e.g., `feat/app-scaffold`, `feat/github-updater-slice`)
-- **Commit Format:** `feat(<slug>): <short description>`
+- **Feature Branches:** `feat/<slug>` or `fix/<slug>` (e.g., `feat/app-scaffold`, `fix/pay-cycle-date-alignment`)
+- **Commit Format:** `<type>(<scope>): <short description>`
 - **Granularity Rule:** Each task is an atomic deliverable suitable for a single pull request with isolated unit/integration tests.
 - **Default Currency:** British Pound Sterling (£ / GBP) across all displays and formatters.
 - **Early Auto-Updates:** In-app updater is implemented in Milestone 1 so physical devices auto-update across all subsequent slices.
@@ -40,5 +40,10 @@
 - [x] [dashboard-analytics-engine] Aggregation Engine: Domain engine computing financial metrics (income, expenses, debt payoff, savings, disposable income) over 3M, 6M, 1Y, and all-time.
 - [x] [dashboard-charts-ui] Interactive Charts & Visuals: `fl_chart` trend lines, period filters, and category distribution breakdown views.
 
-### Milestone 6: E2E Smoke & Production Polish
+### Milestone 6: Post-Review UX Polish & Production Readiness
+- [ ] [pay-cycle-date-alignment] Pay Cycle Date Alignment: Map date spans (e.g. 15 Oct – 14 Nov) to starting month (`2026-10`) in math engine and importer parser.
+- [ ] [dark-mode-theme] Dark Mode Option: Theme mode toggle (System, Light, Dark) in Settings with SQLite persistence and reactive switching.
+- [ ] [tracker-month-filter] Tracker Month Quick-Jump: Month picker sheet in Tracker header for rapid navigation across multi-year cycles.
+- [ ] [dashboard-month-filter] Dashboard Month Filter: Support single-month breakdown view alongside 3M/6M/1Y/All-Time trends.
+- [ ] [auto-update-prompt] Automatic Startup Update Check: Non-intrusive background release check on app launch with in-app update prompt.
 - [ ] [e2e-smoke-polish] E2E Verification & Release Polish: Cross-slice smoke tests, empty state polish, edge case validation, and release APK build check.
