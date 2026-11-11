@@ -119,8 +119,8 @@ void main() {
       final sheet = parsed.sheets.first;
 
       // Assert period headers normalized correctly
-      expect(sheet.periodHeaders[0].normalizedKey, equals('2026-11')); // Oct 15 - Nov 14
-      expect(sheet.periodHeaders[1].normalizedKey, equals('2026-12')); // Nov 15 - Dec 14
+      expect(sheet.periodHeaders[0].normalizedKey, equals('2026-10')); // Oct 15 - Nov 14 (October)
+      expect(sheet.periodHeaders[1].normalizedKey, equals('2026-11')); // Nov 15 - Dec 14 (November)
 
       // Labels present: Wage, Rent (1st), Internet (6th), Debt Left to Pay
       final labels = sheet.rows.map((r) => r.rawLabel).toList();

@@ -23,13 +23,18 @@ void main() {
   });
 
   group('Defect Repro: Period Header Normalization & Drift Schema Constraint', () {
-    test('normalizePeriodHeader normalizes date span "Dec 15th - Jan 14th" to YYYY-MM', () {
+    test('normalizePeriodHeader normalizes date span "Dec 15th - Jan 14th" to YYYY-MM starting month', () {
       final key = parser.normalizePeriodHeader('Dec 15th - Jan 14th');
 
       // Must strictly be 7 characters formatted as YYYY-MM
       expect(key.length, equals(7));
       expect(RegExp(r'^\d{4}-\d{2}$').hasMatch(key), isTrue);
-      expect(key, endsWith('-01')); // Belongs to January cycle
+      expect(key, endsWith('-12')); // Belongs to December cycle
+    });
+
+    test('normalizePeriodHeader normalizes date span "15 Oct - 14 Nov" to October', () {
+      final key = parser.normalizePeriodHeader('15 Oct - 14 Nov', referenceYear: 2026);
+      expect(key, equals('2026-10'));
     });
 
     test('normalizePeriodHeader normalizes plain month "January" or "Jan" to YYYY-MM', () {
@@ -86,6 +91,7 @@ void main() {
       expect(entries.length, equals(1));
       expect(entries.first.periodKey.length, equals(7));
       expect(RegExp(r'^\d{4}-\d{2}$').hasMatch(entries.first.periodKey), isTrue);
+      expect(entries.first.periodKey, endsWith('-12'));
     });
   });
 }
