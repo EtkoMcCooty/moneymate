@@ -12,22 +12,26 @@ void main() {
       });
 
       test('calculates correct period key for mid-month 15th cycle', () {
-        // Period 2026-01 spans Dec 15, 2025 to Jan 14, 2026
-        expect(PayCycleService.getPeriodKey(DateTime(2025, 12, 15), 15), equals('2026-01'));
-        expect(PayCycleService.getPeriodKey(DateTime(2025, 12, 31), 15), equals('2026-01'));
-        expect(PayCycleService.getPeriodKey(DateTime(2026, 1, 1), 15), equals('2026-01'));
-        expect(PayCycleService.getPeriodKey(DateTime(2026, 1, 14), 15), equals('2026-01'));
+        // Period 2025-12 spans Dec 15, 2025 to Jan 14, 2026
+        expect(PayCycleService.getPeriodKey(DateTime(2025, 12, 15), 15), equals('2025-12'));
+        expect(PayCycleService.getPeriodKey(DateTime(2025, 12, 31), 15), equals('2025-12'));
+        expect(PayCycleService.getPeriodKey(DateTime(2026, 1, 1), 15), equals('2025-12'));
+        expect(PayCycleService.getPeriodKey(DateTime(2026, 1, 14), 15), equals('2025-12'));
 
-        // Period 2026-02 starts on Jan 15, 2026
-        expect(PayCycleService.getPeriodKey(DateTime(2026, 1, 15), 15), equals('2026-02'));
-        expect(PayCycleService.getPeriodKey(DateTime(2026, 2, 14), 15), equals('2026-02'));
+        // Period 2026-01 starts on Jan 15, 2026 to Feb 14, 2026
+        expect(PayCycleService.getPeriodKey(DateTime(2026, 1, 15), 15), equals('2026-01'));
+        expect(PayCycleService.getPeriodKey(DateTime(2026, 2, 14), 15), equals('2026-01'));
+
+        // Period 2026-10 spans Oct 15, 2026 to Nov 14, 2026
+        expect(PayCycleService.getPeriodKey(DateTime(2026, 10, 15), 15), equals('2026-10'));
+        expect(PayCycleService.getPeriodKey(DateTime(2026, 11, 14), 15), equals('2026-10'));
       });
 
       test('calculates correct period key for end of month (e.g. 28th)', () {
-        // Period 2026-02 spans Jan 28, 2026 to Feb 27, 2026
-        expect(PayCycleService.getPeriodKey(DateTime(2026, 1, 28), 28), equals('2026-02'));
-        expect(PayCycleService.getPeriodKey(DateTime(2026, 2, 27), 28), equals('2026-02'));
-        expect(PayCycleService.getPeriodKey(DateTime(2026, 2, 28), 28), equals('2026-03'));
+        // Period 2026-01 spans Jan 28, 2026 to Feb 27, 2026
+        expect(PayCycleService.getPeriodKey(DateTime(2026, 1, 28), 28), equals('2026-01'));
+        expect(PayCycleService.getPeriodKey(DateTime(2026, 2, 27), 28), equals('2026-01'));
+        expect(PayCycleService.getPeriodKey(DateTime(2026, 2, 28), 28), equals('2026-02'));
       });
     });
 
@@ -39,18 +43,26 @@ void main() {
       });
 
       test('returns exact date span for 15th cycle across year boundary', () {
-        final range = PayCycleService.getDateRange('2026-01', 15);
+        // Period 2025-12 starts Dec 15, 2025 and ends Jan 14, 2026
+        final range = PayCycleService.getDateRange('2025-12', 15);
         expect(range.start, equals(DateTime(2025, 12, 15, 0, 0, 0)));
         expect(range.end, equals(DateTime(2026, 1, 14, 23, 59, 59, 999)));
       });
 
+      test('returns exact date span for 15th cycle in standard month', () {
+        // Period 2026-10 starts Oct 15, 2026 and ends Nov 14, 2026
+        final range = PayCycleService.getDateRange('2026-10', 15);
+        expect(range.start, equals(DateTime(2026, 10, 15, 0, 0, 0)));
+        expect(range.end, equals(DateTime(2026, 11, 14, 23, 59, 59, 999)));
+      });
+
       test('safely clamps end of month for short months like February', () {
-        // Period 2026-03 with cycle start day 31: starts Feb 28, ends Mar 30
-        final range = PayCycleService.getDateRange('2026-03', 31);
-        expect(range.start.month, equals(2));
-        expect(range.start.day, equals(28)); // Non-leap year
-        expect(range.end.month, equals(3));
-        expect(range.end.day, equals(30));
+        // Period 2026-01 with cycle start day 31: starts Jan 31, ends Feb 28
+        final range = PayCycleService.getDateRange('2026-01', 31);
+        expect(range.start.month, equals(1));
+        expect(range.start.day, equals(31));
+        expect(range.end.month, equals(2));
+        expect(range.end.day, equals(28)); // Non-leap year 2026
       });
     });
 
@@ -79,8 +91,11 @@ void main() {
         final span1 = PayCycleService.formatPeriodDateSpan('2026-01', 1);
         expect(span1, equals('1 Jan 2026 – 31 Jan 2026'));
 
-        final span15 = PayCycleService.formatPeriodDateSpan('2026-01', 15);
-        expect(span15, equals('15 Dec 2025 – 14 Jan 2026'));
+        final span15 = PayCycleService.formatPeriodDateSpan('2026-10', 15);
+        expect(span15, equals('15 Oct 2026 – 14 Nov 2026'));
+
+        final spanCrossYear = PayCycleService.formatPeriodDateSpan('2025-12', 15);
+        expect(spanCrossYear, equals('15 Dec 2025 – 14 Jan 2026'));
       });
 
       test('generates adjacent period keys cleanly', () {

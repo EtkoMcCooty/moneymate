@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// App-wide artisanal theme configuration for MoneyMate.
 /// Implements a 5-layer surface depth model, typographic tension, and high-contrast palette.

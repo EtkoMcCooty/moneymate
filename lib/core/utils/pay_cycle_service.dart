@@ -52,8 +52,8 @@ class PayCycleService {
 
   /// Returns the period key (`YYYY-MM`) for a given [date] and [cycleStartDay].
   ///
-  /// For example, if [cycleStartDay] is 15, dates from 15 Dec 2025 to 14 Jan 2026
-  /// belong to period `2026-01`.
+  /// For example, if [cycleStartDay] is 15, dates from 15 Oct to 14 Nov
+  /// belong to period `2026-10` ("October 2026").
   static String getPeriodKey(DateTime date, int cycleStartDay) {
     if (cycleStartDay <= 1) {
       return _formatKey(date.year, date.month);
@@ -64,13 +64,13 @@ class PayCycleService {
     final effectiveStartDay = min(cycleStartDay, daysInCurrentMonth);
 
     if (date.day >= effectiveStartDay) {
-      // Belongs to the following calendar month's pay cycle
-      final nextMonth = (date.month % 12) + 1;
-      final nextYear = date.month == 12 ? date.year + 1 : date.year;
-      return _formatKey(nextYear, nextMonth);
-    } else {
       // Belongs to the current calendar month's pay cycle
       return _formatKey(date.year, date.month);
+    } else {
+      // Belongs to the previous calendar month's pay cycle
+      final prevMonth = date.month == 1 ? 12 : date.month - 1;
+      final prevYear = date.month == 1 ? date.year - 1 : date.year;
+      return _formatKey(prevYear, prevMonth);
     }
   }
 
@@ -88,20 +88,20 @@ class PayCycleService {
       return DateRange(start: start, end: end);
     }
 
-    // Cycle starts in previous month
-    final prevYear = month == 1 ? year - 1 : year;
-    final prevMonth = month == 1 ? 12 : month - 1;
-    final daysInPrevMonth = DateTime(prevYear, prevMonth + 1, 0).day;
-    final startDay = min(cycleStartDay, daysInPrevMonth);
-    final start = DateTime(prevYear, prevMonth, startDay, 0, 0, 0, 0);
+    // Cycle starts on cycleStartDay in target month (e.g. 15 Oct for 2026-10)
+    final daysInCurrentMonth = DateTime(year, month + 1, 0).day;
+    final startDay = min(cycleStartDay, daysInCurrentMonth);
+    final start = DateTime(year, month, startDay, 0, 0, 0, 0);
 
-    // Cycle ends the day before cycleStartDay in target month
-    final daysInTargetMonth = DateTime(year, month + 1, 0).day;
+    // Cycle ends the day before cycleStartDay in the following month (e.g. 14 Nov for 2026-10)
+    final nextYear = month == 12 ? year + 1 : year;
+    final nextMonth = (month % 12) + 1;
+    final daysInNextMonth = DateTime(nextYear, nextMonth + 1, 0).day;
     var endDay = cycleStartDay - 1;
-    if (endDay > daysInTargetMonth) {
-      endDay = daysInTargetMonth;
+    if (endDay > daysInNextMonth) {
+      endDay = daysInNextMonth;
     }
-    final end = DateTime(year, month, endDay, 23, 59, 59, 999);
+    final end = DateTime(nextYear, nextMonth, endDay, 23, 59, 59, 999);
 
     return DateRange(start: start, end: end);
   }

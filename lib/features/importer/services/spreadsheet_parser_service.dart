@@ -264,28 +264,47 @@ class SpreadsheetParserService {
         final startPart = parts[0].trim();
         final endPart = parts[1].trim();
 
+        final startMonth = _extractMonthNumber(startPart);
+        final endMonth = _extractMonthNumber(endPart);
+
         int? spanYear;
-        final yearMatch = RegExp(r'\b(20\d{2})\b').firstMatch(endPart) ??
-            RegExp(r'\b(20\d{2})\b').firstMatch(startPart);
-        if (yearMatch != null) {
-          spanYear = int.parse(yearMatch.group(1)!);
+        final startYearMatch = RegExp(r'\b(20\d{2})\b').firstMatch(startPart);
+        final endYearMatch = RegExp(r'\b(20\d{2})\b').firstMatch(endPart);
+
+        if (startYearMatch != null) {
+          spanYear = int.parse(startYearMatch.group(1)!);
+        } else if (endYearMatch != null) {
+          spanYear = int.parse(endYearMatch.group(1)!);
+          // If the span crosses year boundary (e.g. Dec 15th - Jan 14th 2026),
+          // the starting month (Dec) belongs to the prior year (2025).
+          if (startMonth != null && endMonth != null && startMonth > endMonth) {
+            spanYear = spanYear - 1;
+          }
         } else {
-          final yearSlashMatch = RegExp(r'/(\d{2})$').firstMatch(endPart);
+          final yearSlashMatch = RegExp(r'/(\d{2})$').firstMatch(startPart) ??
+              RegExp(r'/(\d{2})$').firstMatch(endPart);
           if (yearSlashMatch != null) {
             spanYear = 2000 + int.parse(yearSlashMatch.group(1)!);
           }
         }
         spanYear ??= referenceYear ?? DateTime.now().year;
 
-        final endMonth = _extractMonthNumber(endPart);
-        if (endMonth != null) {
-          final m = endMonth.toString().padLeft(2, '0');
+        // User requirement: A span like 15 Oct - 14 Nov is classed by its starting month (October)
+        final targetMonth = startMonth ?? endMonth;
+        if (targetMonth != null) {
+          final m = targetMonth.toString().padLeft(2, '0');
           return '$spanYear-$m';
         }
 
-        final numDateMatch = RegExp(r'\b\d{1,2}/(\d{1,2})\b').firstMatch(endPart);
-        if (numDateMatch != null) {
-          final m = int.parse(numDateMatch.group(1)!).toString().padLeft(2, '0');
+        final numStartDateMatch = RegExp(r'\b\d{1,2}/(\d{1,2})\b').firstMatch(startPart);
+        if (numStartDateMatch != null) {
+          final m = int.parse(numStartDateMatch.group(1)!).toString().padLeft(2, '0');
+          return '$spanYear-$m';
+        }
+
+        final numEndDateMatch = RegExp(r'\b\d{1,2}/(\d{1,2})\b').firstMatch(endPart);
+        if (numEndDateMatch != null) {
+          final m = int.parse(numEndDateMatch.group(1)!).toString().padLeft(2, '0');
           return '$spanYear-$m';
         }
       }
