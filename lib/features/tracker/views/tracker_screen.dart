@@ -11,11 +11,28 @@ import '../state/tracker_ledger_notifier.dart';
 import '../../importer/views/import_spreadsheet_dialog.dart';
 import 'entry_editor_dialog.dart';
 import 'item_form_dialog.dart';
+import 'widgets/month_picker_sheet.dart';
 
 /// Screen displaying the monthly ledger and finance tracker grid with
 /// collapsible category sections, in-line entry amount/note editing, and disposable income calculations.
 class TrackerScreen extends ConsumerWidget {
   const TrackerScreen({super.key});
+
+  void _openMonthPicker(
+    BuildContext context,
+    WidgetRef ref,
+    TrackerLedgerState state,
+  ) {
+    MonthPickerSheet.show(
+      context,
+      selectedPeriodKey: state.selectedPeriodKey,
+      cycleStartDay: state.cycleStartDay,
+      recordedPeriodKeys: state.recordedPeriodKeys,
+      onPeriodSelected: (periodKey) {
+        ref.read(trackerLedgerNotifierProvider.notifier).selectPeriod(periodKey);
+      },
+    );
+  }
 
   void _shiftPeriod(WidgetRef ref, String currentKey, int delta) {
     final adjacent = PayCycleService.generateAdjacentPeriodKeys(
@@ -189,6 +206,12 @@ class TrackerScreen extends ConsumerWidget {
         ),
         actions: [
           IconButton(
+            key: const Key('tracker_calendar_button'),
+            icon: const Icon(Icons.calendar_month_rounded),
+            tooltip: 'Pick pay period',
+            onPressed: () => _openMonthPicker(context, ref, ledgerState),
+          ),
+          IconButton(
             key: const Key('tracker_import_spreadsheet_button'),
             icon: const Icon(Icons.upload_file_outlined),
             tooltip: 'Import spreadsheet',
@@ -320,25 +343,42 @@ class TrackerScreen extends ConsumerWidget {
                   child: const Icon(Icons.chevron_left_rounded, size: 20),
                 ),
               ),
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    periodTitle,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.3,
+              TactilePress(
+                key: const Key('tracker_period_header_tap'),
+                tooltip: 'Pick pay period',
+                onTap: () => _openMonthPicker(context, ref, state),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          periodTitle,
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: -0.3,
+                                  ),
                         ),
-                  ),
-                  const SizedBox(height: 1),
-                  Text(
-                    periodSpan,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        const SizedBox(width: 4),
+                        Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          size: 18,
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          fontWeight: FontWeight.w500,
                         ),
-                  ),
-                ],
+                      ],
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      periodSpan,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w500,
+                          ),
+                    ),
+                  ],
+                ),
               ),
               TactilePress(
                 tooltip: 'Next month',

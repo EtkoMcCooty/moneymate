@@ -3,6 +3,7 @@
 All notable changes to MoneyMate are documented here in plain, user-friendly language.
 
 ## [Unreleased]
+- Added Month Quick-Jump picker in the Monthly Tracker, allowing you to instantly jump across years and months, see which months have recorded transactions with data indicator dots, and quickly return to your current pay period with a single tap.
 - Redesigned the interface with an executive, modern look and feel featuring physical depth, refined dark mode, tactile button feedback, and tabular numbers for financial figures.
 - Added a visual income allocation progress bar on the Monthly Tracker hero card showing the exact proportion of money going to bills, debts, and savings.
 - Added interactive cash flow charts showing your money in, money out, and leftover disposable income over time.

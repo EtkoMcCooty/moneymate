@@ -20,7 +20,7 @@ class DateRange {
 /// Service providing pay cycle calculation, date window generation,
 /// and user-friendly formatting without financial jargon.
 class PayCycleService {
-  static const List<String> _monthNames = [
+  static const List<String> monthNames = [
     'January',
     'February',
     'March',
@@ -35,7 +35,7 @@ class PayCycleService {
     'December',
   ];
 
-  static const List<String> _shortMonthNames = [
+  static const List<String> shortMonthNames = [
     'Jan',
     'Feb',
     'Mar',
@@ -129,7 +129,7 @@ class PayCycleService {
     final parts = periodKey.split('-');
     final year = int.parse(parts[0]);
     final month = int.parse(parts[1]);
-    return '${_monthNames[month - 1]} $year';
+    return '${monthNames[month - 1]} $year';
   }
 
   /// Formats the date range of a [periodKey] into a human-readable span
@@ -137,9 +137,9 @@ class PayCycleService {
   static String formatPeriodDateSpan(String periodKey, int cycleStartDay) {
     final range = getDateRange(periodKey, cycleStartDay);
     final startStr =
-        '${range.start.day} ${_shortMonthNames[range.start.month - 1]} ${range.start.year}';
+        '${range.start.day} ${shortMonthNames[range.start.month - 1]} ${range.start.year}';
     final endStr =
-        '${range.end.day} ${_shortMonthNames[range.end.month - 1]} ${range.end.year}';
+        '${range.end.day} ${shortMonthNames[range.end.month - 1]} ${range.end.year}';
     return '$startStr \u2013 $endStr';
   }
 

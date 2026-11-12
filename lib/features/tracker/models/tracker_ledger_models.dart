@@ -77,6 +77,7 @@ class TrackerLedgerState {
   final String currencySymbol;
   final List<CategorySection> sections;
   final TrackerLedgerSummary summary;
+  final Set<String> recordedPeriodKeys;
   final bool isLoading;
   final String? errorMessage;
 
@@ -86,6 +87,7 @@ class TrackerLedgerState {
     this.currencySymbol = '£',
     this.sections = const [],
     this.summary = const TrackerLedgerSummary(),
+    this.recordedPeriodKeys = const {},
     this.isLoading = false,
     this.errorMessage,
   });
@@ -96,6 +98,7 @@ class TrackerLedgerState {
     String? currencySymbol,
     List<CategorySection>? sections,
     TrackerLedgerSummary? summary,
+    Set<String>? recordedPeriodKeys,
     bool? isLoading,
     String? errorMessage,
   }) {
@@ -105,6 +108,7 @@ class TrackerLedgerState {
       currencySymbol: currencySymbol ?? this.currencySymbol,
       sections: sections ?? this.sections,
       summary: summary ?? this.summary,
+      recordedPeriodKeys: recordedPeriodKeys ?? this.recordedPeriodKeys,
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage,
     );
