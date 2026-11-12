@@ -37,15 +37,19 @@ void main() {
       expect(find.text('Settings'), findsOneWidget);
       expect(find.text('Payday & Pay Period'), findsOneWidget);
       expect(find.text('Currency'), findsOneWidget);
-      expect(find.text('Spending Categories'), findsOneWidget);
+      expect(find.text('Appearance'), findsOneWidget);
 
       // Check default values
       expect(find.text('Monthly Payday'), findsOneWidget);
       expect(find.textContaining('15th of the month'), findsOneWidget);
       expect(find.text('Default Currency'), findsOneWidget);
       expect(find.textContaining('Current symbol: £'), findsOneWidget);
+      expect(find.text('Theme'), findsOneWidget);
+      expect(find.byKey(const Key('theme_mode_segmented_button')), findsOneWidget);
 
-      // Check category list items rendered
+      // Scroll to categories
+      await tester.scrollUntilVisible(find.text('Spending Categories'), 200);
+      expect(find.text('Spending Categories'), findsOneWidget);
       expect(find.text('Household'), findsOneWidget);
       expect(find.text('Bills & Expenses'), findsWidgets);
       expect(find.text('Income'), findsWidgets);
@@ -55,6 +59,29 @@ void main() {
       await tester.scrollUntilVisible(find.text('Check for updates'), 200);
       expect(find.text('App Updates'), findsOneWidget);
       expect(find.text('Check for updates'), findsOneWidget);
+    });
+
+    testWidgets('renders appearance section and toggles theme mode', (tester) async {
+      await tester.pumpWidget(buildTestApp());
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(find.text('Appearance'), 200);
+      expect(find.text('Appearance'), findsOneWidget);
+      expect(find.text('Theme'), findsOneWidget);
+      expect(find.byKey(const Key('theme_mode_segmented_button')), findsOneWidget);
+      expect(find.text('Follow system theme'), findsOneWidget);
+
+      // Tap Dark
+      await tester.tap(find.text('Dark'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Dark theme active'), findsOneWidget);
+
+      // Tap Light
+      await tester.tap(find.text('Light'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Light theme active'), findsOneWidget);
     });
 
     testWidgets('opens payday picker dialog and changes start day', (tester) async {
@@ -68,45 +95,44 @@ void main() {
       expect(find.text('Choose your payday'), findsOneWidget);
       expect(find.text('Save'), findsOneWidget);
 
-      // Tap Save
+      // Save new day
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
 
       expect(find.text('Choose your payday'), findsNothing);
     });
 
-    testWidgets('opens currency dialog and selects a new currency', (tester) async {
+    testWidgets('opens currency picker dialog and selects new symbol', (tester) async {
       await tester.pumpWidget(buildTestApp());
       await tester.pumpAndSettle();
 
-      // Tap on Default Currency
+      // Ensure Currency is visible and tap Default Currency
+      await tester.scrollUntilVisible(find.text('Default Currency'), 200);
       await tester.tap(find.text('Default Currency'));
       await tester.pumpAndSettle();
 
       expect(find.text('Choose currency symbol'), findsOneWidget);
-      expect(find.text('Euro (€)'), findsOneWidget);
 
-      // Tap Euro
-      await tester.tap(find.text('Euro (€)'));
+      // Select USD ($)
+      await tester.tap(find.textContaining('Dollar'));
       await tester.pumpAndSettle();
 
-      // Confirm updated in UI
-      expect(find.textContaining('Current symbol: €'), findsOneWidget);
+      expect(find.textContaining('Current symbol: \$'), findsOneWidget);
     });
 
-    testWidgets('adds a new custom spending category', (tester) async {
+    testWidgets('opens add category dialog and creates new category', (tester) async {
       await tester.pumpWidget(buildTestApp());
       await tester.pumpAndSettle();
 
-      // Tap Add button
-      await tester.tap(find.text('Add'));
+      // Scroll to Add button and tap
+      await tester.scrollUntilVisible(find.widgetWithText(TextButton, 'Add'), 200);
+      await tester.tap(find.widgetWithText(TextButton, 'Add'));
       await tester.pumpAndSettle();
 
       expect(find.text('Add category'), findsOneWidget);
 
-      // Enter category name
+      // Enter name
       await tester.enterText(find.byType(TextField), 'Gym & Fitness');
-      await tester.pumpAndSettle();
 
       // Tap Add in dialog
       await tester.tap(find.widgetWithText(FilledButton, 'Add'));

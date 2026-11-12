@@ -8,6 +8,7 @@ import '../../updater/state/update_state.dart';
 import '../../updater/views/update_prompt_dialog.dart';
 import '../../importer/views/import_spreadsheet_dialog.dart';
 import '../state/settings_notifier.dart';
+import '../state/theme_mode_notifier.dart';
 
 /// Screen managing payday settings, currency preferences, spending categories,
 /// and in-app updates using plain, friendly everyday language.
@@ -301,6 +302,7 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settingsState = ref.watch(settingsNotifierProvider);
     final updateState = ref.watch(updateNotifierProvider);
+    final themeMode = ref.watch(themeModeProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -415,6 +417,109 @@ class SettingsScreen extends ConsumerWidget {
                       trailing: const Icon(Icons.chevron_right_rounded),
                       onTap: () =>
                           _showCurrencyDialog(context, ref, currencySymbol),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Appearance Section
+                Padding(
+                  padding: const EdgeInsets.only(left: 4.0, bottom: 8.0),
+                  child: Text(
+                    'Appearance',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.3,
+                          color: theme.colorScheme.primary,
+                        ),
+                  ),
+                ),
+                Container(
+                  decoration: CraftDecorations.cardShadowDecoration(context),
+                  child: Material(
+                    color: CraftDecorations.surfaceColor(context),
+                    shape: CraftDecorations.cardShape(context),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.tertiary.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(
+                                  themeMode == ThemeMode.dark
+                                      ? Icons.dark_mode_rounded
+                                      : themeMode == ThemeMode.light
+                                          ? Icons.light_mode_rounded
+                                          : Icons.brightness_auto_rounded,
+                                  color: theme.colorScheme.tertiary,
+                                  size: 20,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Theme',
+                                      style: TextStyle(fontWeight: FontWeight.w700),
+                                    ),
+                                    Text(
+                                      themeMode == ThemeMode.system
+                                          ? 'Follow system theme'
+                                          : themeMode == ThemeMode.light
+                                              ? 'Light theme active'
+                                              : 'Dark theme active',
+                                      style: TextStyle(
+                                        color: theme.colorScheme.onSurfaceVariant,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+                          SizedBox(
+                            width: double.infinity,
+                            child: SegmentedButton<ThemeMode>(
+                              key: const Key('theme_mode_segmented_button'),
+                              segments: const [
+                                ButtonSegment<ThemeMode>(
+                                  value: ThemeMode.system,
+                                  icon: Icon(Icons.brightness_auto_rounded, size: 16),
+                                  label: Text('System'),
+                                ),
+                                ButtonSegment<ThemeMode>(
+                                  value: ThemeMode.light,
+                                  icon: Icon(Icons.light_mode_rounded, size: 16),
+                                  label: Text('Light'),
+                                ),
+                                ButtonSegment<ThemeMode>(
+                                  value: ThemeMode.dark,
+                                  icon: Icon(Icons.dark_mode_rounded, size: 16),
+                                  label: Text('Dark'),
+                                ),
+                              ],
+                              selected: {themeMode},
+                              onSelectionChanged: (newSelection) {
+                                ref
+                                    .read(themeModeProvider.notifier)
+                                    .setThemeMode(newSelection.first);
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
