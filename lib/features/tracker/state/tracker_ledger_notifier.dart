@@ -141,12 +141,22 @@ class TrackerLedgerNotifier extends StateNotifier<TrackerLedgerState> {
         totalSavingsAndInvestments: totalSavingsAndInvestments,
       );
 
+      // Fetch all distinct period keys with recorded entries
+      final periodKeyRows = await (_db.selectOnly(_db.itemEntries, distinct: true)
+            ..addColumns([_db.itemEntries.periodKey]))
+          .get();
+      final recordedPeriodKeys = periodKeyRows
+          .map((row) => row.read(_db.itemEntries.periodKey))
+          .whereType<String>()
+          .toSet();
+
       state = TrackerLedgerState(
         selectedPeriodKey: effectivePeriodKey,
         cycleStartDay: activeTracker.cycleStartDay,
         currencySymbol: activeTracker.currencySymbol,
         sections: sections,
         summary: summary,
+        recordedPeriodKeys: recordedPeriodKeys,
         isLoading: false,
       );
     } catch (e) {
