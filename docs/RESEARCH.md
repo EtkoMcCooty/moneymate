@@ -115,10 +115,11 @@
 | `{{RUST_CACHE_ACTION_VERSION}}` | `Swatinem/rust-cache` | `v2` (`reference — unused stack`) | Verified latest major tag (unused in Flutter mobile project) |
 | `{{GH_RELEASE_ACTION_VERSION}}` | `softprops/action-gh-release` | `v3` | Automated GitHub Release creation with sideload APK asset |
 
-### 6.2 Language & Runtime Placeholders (6 Tokens)
+### 6.2 Language, Runtime & Runner Placeholders (7 Tokens)
 
 | Placeholder Token | Target Runtime / Toolchain | Verified Stable / LTS Version | Channel / Notes |
 | :--- | :--- | :--- | :--- |
+| `{{UBUNTU_RUNNER}}` | GitHub Actions Ubuntu Runner | `ubuntu-26.04` | Active Ubuntu 26.04 LTS runner image (`actions/runner-images#14748`) |
 | `{{NODE_VERSION}}` | Node.js | `26` (`26.13.0` LTS — `unused stack`) | Active LTS (*Lithium*, unused in Flutter mobile project) |
 | `{{PYTHON_VERSION}}` | Python | `3.15` (`3.15.2` stable — `unused stack`) | Latest stable release branch (unused in Flutter mobile project) |
 | `{{GO_VERSION}}` | Go | `1.27` (`1.27.4` stable — `unused stack`) | Latest stable release (unused in Flutter mobile project) |
