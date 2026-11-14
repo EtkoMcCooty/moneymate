@@ -27,5 +27,5 @@ Chosen option: "Flutter 3.50 (`material_ui`, Dart 3.14) + `flutter_riverpod` + `
 * Decoupled `material_ui` aligns with Flutter 3.50+ best practices.
 
 ### Negative Consequences & Trade-offs
-* Requires maintaining Android Gradle / Java 17 compatibility and constraining CI JVM heap sizes (`-Xmx3072m`) on 7 GB runners.
+* Requires maintaining Android Gradle / Java 21 LTS compatibility and constraining CI JVM heap sizes (`-Xmx3072m`) on 7 GB runners.
 * Code generation via `build_runner` is required after Drift schema changes.

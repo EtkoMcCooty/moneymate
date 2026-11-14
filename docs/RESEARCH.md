@@ -24,7 +24,7 @@
 | :--- | :--- | :--- | :--- | :--- |
 | **Flutter SDK** | `3.50.0` (`stable`) | `{{FLUTTER_VERSION}}` | Stable channel (verified 2026-11) | Bundles Dart 3.14.0, decoupled `material_ui` support, and AGP 9.1 / Gradle 9.3+ compatibility |
 | **Dart SDK** | `3.14.0` | N/A (bundled with Flutter) | Stable channel | Supports pattern matching, sealed classes, records, and strict type analysis |
-| **Java (JDK)** | `17` LTS (`zulu`) | `{{JAVA_VERSION}}` | Active LTS | Verified compatible with Android Gradle build toolchain on GitHub-hosted Linux runners |
+| **Java (JDK)** | `21` LTS (`zulu`) | `{{JAVA_VERSION}}` | Active LTS | Verified compatible with Android Gradle 9.3.1 / AGP 9.1.1 on GitHub-hosted Linux runners |
 
 ---
 
@@ -66,14 +66,15 @@
 | Layer / Role | Recommended Package / Tool | Verified Version | Registry & Health Status | Justification |
 | :--- | :--- | :--- | :--- | :--- |
 | **UI Design System** | `material_ui` | `^1.11.0` | `pub.dev` — Active / Stable | Decoupled Material 3 component library for Flutter 3.50+ |
-| **State Management** | `flutter_riverpod` | `^3.4.3` | `pub.dev` — Active / Stable | Compile-safe reactive state management and dependency injection |
-| **Local Database (ORM)** | `drift` / `drift_flutter` | `^2.35.3` / `^0.3.1` | `pub.dev` — Active / Stable | Typed SQLite queries, reactive streams, and schema migrations |
-| **SQLite Native Libs** | `sqlite3_flutter_libs` | `^0.6.0+eol` | `pub.dev` — Stable | Bundles SQLite native binaries for Android and iOS |
-| **Analytics & Charts** | `fl_chart` | `^1.3.0` | `pub.dev` — Active / Stable | Interactive cash-flow line charts and category breakdown visuals |
+| **State Management** | `flutter_riverpod` | `^3.5.0` | `pub.dev` — Active / Stable | Compile-safe reactive state management and dependency injection |
+| **Local Database (ORM)** | `drift` / `drift_flutter` | `^2.35.4` / `^0.3.1` | `pub.dev` — Active / Stable | Typed SQLite queries, reactive streams, and schema migrations |
+| **SQLite Native Libs** | `sqlite3` (via `drift_flutter` hooks) | `3.9.1` | `pub.dev` — Active / Stable | Bundles native SQLite binaries automatically via Dart Native Assets hooks (replaced EOL `sqlite3_flutter_libs`) |
+| **Analytics & Charts** | `fl_chart` | `^1.3.1` | `pub.dev` — Active / Stable | Interactive cash-flow line charts and category breakdown visuals |
 | **Spreadsheet Parsing** | `excel` / `csv` | `^4.0.6` / `^8.0.0` | `pub.dev` — Active / Stable | Multi-sheet `.xlsx` and `.csv` financial tracker ingestion |
-| **File & OS Integration** | `file_picker` / `open_filex` / `url_launcher` | `^13.3.2` / `^5.0.0` / `^6.3.3` | `pub.dev` — Active / Stable | Native file selection and Android APK installation / browser fallback |
+| **File & OS Integration** | `file_picker` / `open_filex` / `url_launcher` | `^13.3.3` / `^5.0.0` / `^6.3.3` | `pub.dev` — Active / Stable | Native file selection and Android APK installation / browser fallback |
+| **Storage Paths** | `path` / `path_provider` | `^1.9.1` / `^2.1.6` | `pub.dev` — Active / Stable | Cross-platform filesystem paths for local database and APK downloads |
 | **Metadata & Networking** | `package_info_plus` / `http` / `intl` | `^10.2.2` / `^1.6.0` / `^0.20.3` | `pub.dev` — Active / Stable | Version comparison, GitHub Releases API client, and GBP (£) formatting |
-| **Codegen & Linting** | `drift_dev` / `build_runner` / `flutter_lints` | `^2.35.2` / `^2.17.1` / `^6.0.0` | `pub.dev` — Active / Stable | Drift DAO generation and strict static analysis |
+| **Codegen & Linting** | `drift_dev` / `build_runner` / `flutter_lints` | `^2.35.3` / `^2.17.1` / `^6.0.0` | `pub.dev` — Active / Stable | Drift DAO generation and strict static analysis |
 
 ---
 
@@ -85,7 +86,9 @@
 | :--- | :--- | :--- |
 | `package:flutter/material.dart` | `package:material_ui/material_ui.dart` | Deprecated in Flutter 3.50 in favour of the decoupled `material_ui` package. |
 | `Color.withOpacity(double)` | `Color.withValues(alpha: double)` | Deprecated due to wide-gamut colour precision loss. |
-| Mixing `upload-artifact` and `download-artifact` major versions | Pair `actions/upload-artifact@v4` with `actions/download-artifact@v4` | Incompatible artifact backend protocols across mismatched major versions cause download failures in `cd.yml`. |
+| Direct dependency on `sqlite3_flutter_libs` (`^0.6.0+eol`) | Native `sqlite3` (`3.9.1+`) via `drift_flutter` Dart Native Assets hooks | `sqlite3_flutter_libs` `0.6.0+eol` is an End-Of-Life empty transitional package; native SQLite binaries are now bundled via Dart build hooks. |
+| Mixing `upload-artifact` and `download-artifact` major versions | Pair `actions/upload-artifact@v7` with `actions/download-artifact@v8` | Incompatible artifact backend protocols across mismatched major versions cause download failures in `cd.yml`, and `v7`/`v8` bring modern runner and unzipped artefact support. |
+| `softprops/action-gh-release@v2` | `softprops/action-gh-release@v3` | `v2` is superseded by `v3` with modern Node 24 runner compatibility. |
 
 ### 5.2 Ecosystem Pitfalls, Build Prerequisites & Security Invariants
 - **CI Runner Memory Budget (7 GB RAM Limit):** GitHub-hosted `ubuntu-latest` runners have 7 GB RAM. Always constrain Gradle in `android/gradle.properties` and CI env (`-Xmx3072m -XX:MaxMetaspaceSize=768m` and `kotlin.daemon.jvmargs=-Xmx1536m`) to prevent Linux OOM-killer exit code `137` during `assembleRelease`.
@@ -100,28 +103,28 @@
 
 | Placeholder Token | Upstream Action Repository | Verified Version / Tag | Usage Context |
 | :--- | :--- | :--- | :--- |
-| `{{ACTIONS_CHECKOUT_VERSION}}` | `actions/checkout` | `v4` | Repository checkout in `.github/workflows/ci.yml` & `cd.yml` |
-| `{{ACTIONS_UPLOAD_ARTIFACT_VERSION}}` | `actions/upload-artifact` | `v4` | Build artefact upload (`app-release-apk`, `test-results-log`) |
-| `{{ACTIONS_DOWNLOAD_ARTIFACT_VERSION}}` | `actions/download-artifact` | `v4` | Build artefact download in `cd.yml` `release` job (paired with `upload-artifact@v4`) |
-| `{{ACTIONS_SETUP_NODE_VERSION}}` | `actions/setup-node` | `N/A (unused stack)` | Unused in Flutter mobile project |
-| `{{ACTIONS_SETUP_PYTHON_VERSION}}` | `actions/setup-python` | `N/A (unused stack)` | Unused in Flutter mobile project |
-| `{{ACTIONS_SETUP_GO_VERSION}}` | `actions/setup-go` | `N/A (unused stack)` | Unused in Flutter mobile project |
-| `{{ACTIONS_SETUP_JAVA_VERSION}}` | `actions/setup-java` | `v5` | Java 17 (`zulu`) & Gradle cache setup for Android APK builds |
+| `{{ACTIONS_CHECKOUT_VERSION}}` | `actions/checkout` | `v7` | Repository checkout in `.github/workflows/ci.yml` & `cd.yml` |
+| `{{ACTIONS_UPLOAD_ARTIFACT_VERSION}}` | `actions/upload-artifact` | `v7` | Build artefact upload (`app-release-apk`, `test-results-log`) |
+| `{{ACTIONS_DOWNLOAD_ARTIFACT_VERSION}}` | `actions/download-artifact` | `v8` | Build artefact download in `cd.yml` `release` job (paired with `upload-artifact@v7`) |
+| `{{ACTIONS_SETUP_NODE_VERSION}}` | `actions/setup-node` | `v7` (`reference — unused stack`) | Verified latest major tag (unused in Flutter mobile project) |
+| `{{ACTIONS_SETUP_PYTHON_VERSION}}` | `actions/setup-python` | `v7` (`reference — unused stack`) | Verified latest major tag (unused in Flutter mobile project) |
+| `{{ACTIONS_SETUP_GO_VERSION}}` | `actions/setup-go` | `v7` (`reference — unused stack`) | Verified latest major tag (unused in Flutter mobile project) |
+| `{{ACTIONS_SETUP_JAVA_VERSION}}` | `actions/setup-java` | `v6` | Java 21 (`zulu`) & Gradle cache setup for Android APK builds |
 | `{{FLUTTER_ACTION_VERSION}}` | `subosito/flutter-action` | `v2` | Flutter SDK stable channel & pub cache setup |
-| `{{RUST_TOOLCHAIN_ACTION_VERSION}}` | `dtolnay/rust-toolchain` | `N/A (unused stack)` | Unused in Flutter mobile project |
-| `{{RUST_CACHE_ACTION_VERSION}}` | `Swatinem/rust-cache` | `N/A (unused stack)` | Unused in Flutter mobile project |
-| `{{GH_RELEASE_ACTION_VERSION}}` | `softprops/action-gh-release` | `v2` | Automated GitHub Release creation with sideload APK asset |
+| `{{RUST_TOOLCHAIN_ACTION_VERSION}}` | `dtolnay/rust-toolchain` | `@stable` (`reference — unused stack`) | Verified latest stable tag (unused in Flutter mobile project) |
+| `{{RUST_CACHE_ACTION_VERSION}}` | `Swatinem/rust-cache` | `v2` (`reference — unused stack`) | Verified latest major tag (unused in Flutter mobile project) |
+| `{{GH_RELEASE_ACTION_VERSION}}` | `softprops/action-gh-release` | `v3` | Automated GitHub Release creation with sideload APK asset |
 
 ### 6.2 Language & Runtime Placeholders (6 Tokens)
 
 | Placeholder Token | Target Runtime / Toolchain | Verified Stable / LTS Version | Channel / Notes |
 | :--- | :--- | :--- | :--- |
-| `{{NODE_VERSION}}` | Node.js | `N/A (unused stack)` | Unused in Flutter mobile project |
-| `{{PYTHON_VERSION}}` | Python | `N/A (unused stack)` | Unused in Flutter mobile project |
-| `{{GO_VERSION}}` | Go | `N/A (unused stack)` | Unused in Flutter mobile project |
-| `{{JAVA_VERSION}}` | Java (JDK) | `17` | Active LTS (`zulu` distribution) for Android Gradle builds |
+| `{{NODE_VERSION}}` | Node.js | `26` (`26.13.0` LTS — `unused stack`) | Active LTS (*Lithium*, unused in Flutter mobile project) |
+| `{{PYTHON_VERSION}}` | Python | `3.15` (`3.15.2` stable — `unused stack`) | Latest stable release branch (unused in Flutter mobile project) |
+| `{{GO_VERSION}}` | Go | `1.27` (`1.27.4` stable — `unused stack`) | Latest stable release (unused in Flutter mobile project) |
+| `{{JAVA_VERSION}}` | Java (JDK) | `21` | Active LTS (`zulu` distribution) for Android Gradle 9.3.1 / AGP 9.1.1 builds |
 | `{{FLUTTER_VERSION}}` | Flutter SDK | `3.50.0` (`stable`) | Latest stable channel release |
-| `{{RUST_TOOLCHAIN}}` | Rust Toolchain | `N/A (unused stack)` | Unused in Flutter mobile project |
+| `{{RUST_TOOLCHAIN}}` | Rust Toolchain | `1.100.0` (`stable` — `unused stack`) | Latest stable release (unused in Flutter mobile project) |
 
 ---
 
