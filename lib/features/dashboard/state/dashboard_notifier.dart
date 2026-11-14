@@ -39,6 +39,10 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
 
       // Collect all distinct period keys sorted chronologically
       final periodKeysSet = _cachedEntries.map((e) => e.periodKey).toSet();
+      final recordedKeys = _cachedEntries
+          .where((e) => e.amount > 0 || e.extraPayment > 0)
+          .map((e) => e.periodKey)
+          .toSet();
 
       // If empty, supply the current active pay cycle period
       if (periodKeysSet.isEmpty) {
@@ -58,13 +62,17 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
 
       final aggregateData = _recalculateData(
         timeframe: state.selectedTimeframe,
-        selectedPeriodKey: state.selectedPeriodKey,
+        selectedPeriodKey: state.filteredMonthKey ?? state.selectedPeriodKey,
+        isExplicitMonthFilter: state.isMonthFiltered,
       );
 
       state = state.copyWith(
         currencySymbol: currencySymbol,
+        cycleStartDay: cycleStartDay,
+        recordedPeriodKeys: recordedKeys,
         data: aggregateData,
         selectedPeriodKey: aggregateData.selectedPeriodSummary?.periodKey,
+        clearSelectedPeriodKey: aggregateData.selectedPeriodSummary == null,
         isLoading: false,
       );
     } catch (e) {
@@ -77,31 +85,70 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
 
   /// Changes the rolling timeframe (3 Months, 6 Months, 1 Year, All Time).
   void setTimeframe(AnalyticsTimeframe timeframe) {
-    if (state.selectedTimeframe == timeframe && state.data != null) return;
+    if (state.selectedTimeframe == timeframe &&
+        !state.isMonthFiltered &&
+        state.data != null) {
+      return;
+    }
 
     final aggregateData = _recalculateData(
       timeframe: timeframe,
-      selectedPeriodKey: null, // Reset to latest period in new window
+      selectedPeriodKey: null,
     );
 
     state = state.copyWith(
       selectedTimeframe: timeframe,
-      selectedPeriodKey: aggregateData.selectedPeriodSummary?.periodKey,
+      clearSelectedPeriodKey: true,
+      clearFilteredMonthKey: true,
+      data: aggregateData,
+    );
+  }
+
+  /// Filters the dashboard to inspect a specific pay cycle month and compare it against averages.
+  void filterByMonth(String periodKey) {
+    final aggregateData = _recalculateData(
+      timeframe: state.selectedTimeframe,
+      selectedPeriodKey: periodKey,
+      isExplicitMonthFilter: true,
+    );
+
+    state = state.copyWith(
+      filteredMonthKey: periodKey,
+      selectedPeriodKey: periodKey,
+      data: aggregateData,
+    );
+  }
+
+  /// Clears the single-month filter and returns to the timeframe average overview.
+  void clearMonthFilter() {
+    final aggregateData = _recalculateData(
+      timeframe: state.selectedTimeframe,
+      selectedPeriodKey: null,
+    );
+
+    state = state.copyWith(
+      clearFilteredMonthKey: true,
+      clearSelectedPeriodKey: true,
       data: aggregateData,
     );
   }
 
   /// Selects a specific period from the chart or list to drill into its category breakdown.
   void selectPeriod(String periodKey) {
-    if (state.selectedPeriodKey == periodKey) return;
+    if (state.selectedPeriodKey == periodKey &&
+        state.data?.selectedPeriodSummary?.periodKey == periodKey) {
+      return;
+    }
 
     final aggregateData = _recalculateData(
       timeframe: state.selectedTimeframe,
       selectedPeriodKey: periodKey,
+      isExplicitMonthFilter: state.isMonthFiltered,
     );
 
     state = state.copyWith(
       selectedPeriodKey: periodKey,
+      filteredMonthKey: state.isMonthFiltered ? periodKey : state.filteredMonthKey,
       data: aggregateData,
     );
   }
@@ -109,18 +156,25 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
   DashboardAggregateData _recalculateData({
     required AnalyticsTimeframe timeframe,
     required String? selectedPeriodKey,
+    bool isExplicitMonthFilter = false,
   }) {
     final activePeriods = _engine.filterByTimeframe(
       allSummaries: _allSummaries,
       timeframe: timeframe,
     );
 
-    // Determine targeted period summary for detail drill-down (defaults to latest)
+    // Determine targeted period summary for detail drill-down (null means timeframe overview)
     PeriodMetricSummary? targetPeriod;
     if (selectedPeriodKey != null) {
-      targetPeriod = activePeriods.where((p) => p.periodKey == selectedPeriodKey).firstOrNull;
+      targetPeriod =
+          _allSummaries.where((p) => p.periodKey == selectedPeriodKey).firstOrNull;
+      if (targetPeriod == null && isExplicitMonthFilter) {
+        targetPeriod = PeriodMetricSummary(
+          periodKey: selectedPeriodKey,
+          displayLabel: AnalyticsEngineService.formatPeriodLabel(selectedPeriodKey),
+        );
+      }
     }
-    targetPeriod ??= activePeriods.isNotEmpty ? activePeriods.last : null;
 
     // Targeted periods for category breakdown (either single selected period, or all active)
     final breakdownPeriods = targetPeriod != null
@@ -139,10 +193,12 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
     final totalIncome = activePeriods.fold(0.0, (sum, p) => sum + p.totalIncome);
     final totalOutflows = activePeriods.fold(0.0, (sum, p) => sum + p.totalOutflows);
     final totalDisposable = activePeriods.fold(0.0, (sum, p) => sum + p.disposableIncome);
+    final totalSavingsRate = activePeriods.fold(0.0, (sum, p) => sum + p.savingsRate);
 
     final avgIncome = totalIncome / periodCount;
     final avgOutflows = totalOutflows / periodCount;
     final avgDisposable = totalDisposable / periodCount;
+    final avgSavingsRate = activePeriods.isNotEmpty ? totalSavingsRate / periodCount : 0.0;
 
     final remainingDebt = _engine.computeRemainingDebt(
       debtMetadataList: _cachedDebts,
@@ -160,6 +216,7 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
       averageMonthlyIncome: avgIncome,
       averageMonthlyOutflows: avgOutflows,
       averageDisposableIncome: avgDisposable,
+      averageSavingsRate: avgSavingsRate,
       totalDebtRemaining: remainingDebt,
       totalDebtPaidInTimeframe: totalDebtPaidInTimeframe,
     );

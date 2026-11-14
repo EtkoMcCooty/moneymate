@@ -10,11 +10,13 @@ import '../../models/analytics_models.dart';
 class DashboardKpiCards extends StatelessWidget {
   final DashboardAggregateData data;
   final String currencySymbol;
+  final bool isMonthFiltered;
 
   const DashboardKpiCards({
     super.key,
     required this.data,
     required this.currencySymbol,
+    this.isMonthFiltered = false,
   });
 
   @override
@@ -24,8 +26,10 @@ class DashboardKpiCards extends StatelessWidget {
         activeSummary?.disposableIncome ?? data.averageDisposableIncome;
     final income = activeSummary?.totalIncome ?? data.averageMonthlyIncome;
     final outflows = activeSummary?.totalOutflows ?? data.averageMonthlyOutflows;
-    final savingsRate = activeSummary?.savingsRate ?? 0.0;
+    final savingsRate = activeSummary?.savingsRate ?? data.averageSavingsRate;
     final periodLabel = activeSummary?.displayLabel ?? 'Average';
+    final disposableDelta = data.disposableIncomeDelta;
+    final savingsDelta = data.savingsRateDelta;
 
     final isPositive = disposableIncome >= 0;
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -50,14 +54,17 @@ class DashboardKpiCards extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'Disposable Income',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: -0.2,
-                              color: Theme.of(context).colorScheme.onSurface,
-                            ),
+                      Flexible(
+                        child: Text(
+                          'Disposable Income',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: -0.2,
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
+                        ),
                       ),
+                      const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 10,
@@ -84,19 +91,34 @@ class DashboardKpiCards extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    CurrencyFormatter.format(
-                      disposableIncome,
-                      symbol: currencySymbol,
-                    ),
-                    style: CraftDecorations.tabularStyle(
-                      baseStyle: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.8,
-                            color: accentColor,
-                          ) ??
-                          TextStyle(color: accentColor),
-                    ),
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 10,
+                    runSpacing: 6,
+                    children: [
+                      Text(
+                        CurrencyFormatter.format(
+                          disposableIncome,
+                          symbol: currencySymbol,
+                        ),
+                        style: CraftDecorations.tabularStyle(
+                          baseStyle: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.8,
+                                color: accentColor,
+                              ) ??
+                              TextStyle(color: accentColor),
+                        ),
+                      ),
+                      if (isMonthFiltered && disposableDelta != null)
+                        _buildDeltaBadge(
+                          context,
+                          key: const Key('kpi_disposable_delta_badge'),
+                          label:
+                              '${disposableDelta >= 0 ? '+' : '-'}${CurrencyFormatter.format(disposableDelta.abs(), symbol: currencySymbol)} ${data.timeframe.shortComparisonLabel}',
+                          isPositive: disposableDelta >= 0,
+                        ),
+                    ],
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -261,13 +283,22 @@ class DashboardKpiCards extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 4),
-                          Text(
-                            'Saved of total income',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                          ),
+                          if (isMonthFiltered && savingsDelta != null)
+                            _buildDeltaBadge(
+                              context,
+                              key: const Key('kpi_savings_delta_badge'),
+                              label:
+                                  '${savingsDelta >= 0 ? '+' : '-'}${savingsDelta.abs().toStringAsFixed(1)}% ${data.timeframe.shortComparisonLabel}',
+                              isPositive: savingsDelta >= 0,
+                            )
+                          else
+                            Text(
+                              'Saved of total income',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                            ),
                         ],
                       ],
                     ),
@@ -278,6 +309,54 @@ class DashboardKpiCards extends StatelessWidget {
           ],
         ),
       ],
+    );
+  }
+
+  Widget _buildDeltaBadge(
+    BuildContext context, {
+    required Key key,
+    required String label,
+    required bool isPositive,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final badgeColor = isPositive ? AppTheme.incomeColor : AppTheme.expenseColor;
+
+    return Container(
+      key: key,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: badgeColor.withValues(alpha: isDark ? 0.18 : 0.10),
+        borderRadius: BorderRadius.circular(100),
+        border: Border.all(
+          color: badgeColor.withValues(alpha: 0.25),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            isPositive ? Icons.trending_up_rounded : Icons.trending_down_rounded,
+            size: 12,
+            color: badgeColor,
+          ),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              label,
+              style: CraftDecorations.tabularStyle(
+                baseStyle: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: badgeColor,
+                ),
+                letterSpacing: -0.1,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
