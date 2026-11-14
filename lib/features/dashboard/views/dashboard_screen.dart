@@ -2,6 +2,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/craft_decorations.dart';
+import '../../../core/utils/pay_cycle_service.dart';
+import '../../tracker/views/widgets/month_picker_sheet.dart';
 import '../models/analytics_models.dart';
 import '../state/dashboard_notifier.dart';
 import 'widgets/category_breakdown_section.dart';
@@ -26,6 +28,24 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     });
   }
 
+  void _openMonthPicker(BuildContext context, DashboardState state) {
+    final summaries = state.data?.periodSummaries ?? [];
+    final fallbackKey = summaries.isNotEmpty
+        ? summaries.last.periodKey
+        : PayCycleService.getPeriodKey(DateTime.now(), state.cycleStartDay);
+
+    MonthPickerSheet.show(
+      context,
+      selectedPeriodKey:
+          state.filteredMonthKey ?? state.selectedPeriodKey ?? fallbackKey,
+      cycleStartDay: state.cycleStartDay,
+      recordedPeriodKeys: state.recordedPeriodKeys,
+      onPeriodSelected: (periodKey) {
+        ref.read(dashboardNotifierProvider.notifier).filterByMonth(periodKey);
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(dashboardNotifierProvider);
@@ -34,6 +54,15 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       key: const Key('dashboard_screen_content'),
       appBar: AppBar(
         title: const Text('Insights'),
+        actions: [
+          if (!state.isLoading && state.hasData)
+            IconButton(
+              key: const Key('dashboard_calendar_button'),
+              icon: const Icon(Icons.calendar_month_rounded),
+              tooltip: 'Filter by month',
+              onPressed: () => _openMonthPicker(context, state),
+            ),
+        ],
       ),
       body: Builder(
         builder: (context) {
@@ -169,10 +198,71 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
                 const SizedBox(height: 14),
 
+                if (state.isMonthFiltered && state.filteredMonthKey != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Container(
+                      key: const Key('dashboard_active_filter_pill'),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.calendar_month_rounded,
+                            size: 16,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Viewing ${PayCycleService.formatPeriodTitle(state.filteredMonthKey!)}',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            key: const Key('dashboard_clear_filter_button'),
+                            icon: Icon(
+                              Icons.close_rounded,
+                              size: 18,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            tooltip: 'Clear month filter',
+                            visualDensity: VisualDensity.compact,
+                            onPressed: () {
+                              ref
+                                  .read(dashboardNotifierProvider.notifier)
+                                  .clearMonthFilter();
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
                 // KPI Overview Cards
                 DashboardKpiCards(
                   data: data,
                   currencySymbol: state.currencySymbol,
+                  isMonthFiltered: state.isMonthFiltered,
                 ),
 
                 const SizedBox(height: 14),
@@ -194,7 +284,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 // Category Spending Allocations ("Where your money goes")
                 CategoryBreakdownSection(
                   breakdowns: data.categoryBreakdowns,
-                  activePeriodLabel: data.selectedPeriodSummary?.displayLabel,
+                  activePeriodLabel:
+                      data.selectedPeriodSummary?.displayLabel ??
+                          state.selectedTimeframe.label,
                   currencySymbol: state.currencySymbol,
                 ),
               ],

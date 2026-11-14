@@ -20,6 +20,14 @@ enum AnalyticsTimeframe {
         AnalyticsTimeframe.oneYear => 12,
         AnalyticsTimeframe.allTime => null,
       };
+
+  /// Concise comparison suffix used on comparative KPI delta badges.
+  String get shortComparisonLabel => switch (this) {
+        AnalyticsTimeframe.threeMonths => 'vs 3mo avg',
+        AnalyticsTimeframe.sixMonths => 'vs 6mo avg',
+        AnalyticsTimeframe.oneYear => 'vs 1yr avg',
+        AnalyticsTimeframe.allTime => 'vs all-time avg',
+      };
 }
 
 /// Aggregated metrics for an individual pay cycle / month.
@@ -82,6 +90,7 @@ class DashboardAggregateData {
   final double averageMonthlyIncome;
   final double averageMonthlyOutflows;
   final double averageDisposableIncome;
+  final double averageSavingsRate;
   final double totalDebtRemaining;
   final double totalDebtPaidInTimeframe;
 
@@ -93,9 +102,20 @@ class DashboardAggregateData {
     this.averageMonthlyIncome = 0.0,
     this.averageMonthlyOutflows = 0.0,
     this.averageDisposableIncome = 0.0,
+    this.averageSavingsRate = 0.0,
     this.totalDebtRemaining = 0.0,
     this.totalDebtPaidInTimeframe = 0.0,
   });
+
+  /// Difference between the focused period's disposable income and the timeframe average.
+  double? get disposableIncomeDelta => selectedPeriodSummary != null
+      ? selectedPeriodSummary!.disposableIncome - averageDisposableIncome
+      : null;
+
+  /// Difference between the focused period's savings rate and the timeframe average.
+  double? get savingsRateDelta => selectedPeriodSummary != null
+      ? selectedPeriodSummary!.savingsRate - averageSavingsRate
+      : null;
 }
 
 /// Reactive state container for the dashboard screen.
@@ -103,6 +123,9 @@ class DashboardAggregateData {
 class DashboardState {
   final AnalyticsTimeframe selectedTimeframe;
   final String? selectedPeriodKey;
+  final String? filteredMonthKey;
+  final Set<String> recordedPeriodKeys;
+  final int cycleStartDay;
   final String currencySymbol;
   final DashboardAggregateData? data;
   final bool isLoading;
@@ -111,11 +134,17 @@ class DashboardState {
   const DashboardState({
     this.selectedTimeframe = AnalyticsTimeframe.sixMonths,
     this.selectedPeriodKey,
+    this.filteredMonthKey,
+    this.recordedPeriodKeys = const {},
+    this.cycleStartDay = 15,
     this.currencySymbol = '£',
     this.data,
     this.isLoading = false,
     this.errorMessage,
   });
+
+  /// Whether the user is currently filtering the dashboard to a single month.
+  bool get isMonthFiltered => filteredMonthKey != null;
 
   bool get hasData =>
       data != null &&
@@ -125,6 +154,11 @@ class DashboardState {
   DashboardState copyWith({
     AnalyticsTimeframe? selectedTimeframe,
     String? selectedPeriodKey,
+    bool clearSelectedPeriodKey = false,
+    String? filteredMonthKey,
+    bool clearFilteredMonthKey = false,
+    Set<String>? recordedPeriodKeys,
+    int? cycleStartDay,
     String? currencySymbol,
     DashboardAggregateData? data,
     bool? isLoading,
@@ -132,7 +166,14 @@ class DashboardState {
   }) {
     return DashboardState(
       selectedTimeframe: selectedTimeframe ?? this.selectedTimeframe,
-      selectedPeriodKey: selectedPeriodKey ?? this.selectedPeriodKey,
+      selectedPeriodKey: clearSelectedPeriodKey
+          ? null
+          : (selectedPeriodKey ?? this.selectedPeriodKey),
+      filteredMonthKey: clearFilteredMonthKey
+          ? null
+          : (filteredMonthKey ?? this.filteredMonthKey),
+      recordedPeriodKeys: recordedPeriodKeys ?? this.recordedPeriodKeys,
+      cycleStartDay: cycleStartDay ?? this.cycleStartDay,
       currencySymbol: currencySymbol ?? this.currencySymbol,
       data: data ?? this.data,
       isLoading: isLoading ?? this.isLoading,
