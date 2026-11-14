@@ -2,9 +2,10 @@
 
 ## MoneyMate — Personal Finance Tracker
 
-> **Document Version:** 1.0  
+> **Document Version:** 1.1  
+> **Project Tier:** Production  
 > **Status:** Approved  
-> **Last Updated:** 2026-10-25  
+> **Last Updated:** 2026-11-14  
 
 ---
 
@@ -47,36 +48,48 @@ The project adheres strictly to **Vertical Slice Architecture**, isolating each 
 ```text
 lib/
 ├── core/
-│   ├── constants/             # App strings, default values (GBP £ default)
-│   ├── database/              # Drift database tables, migrations, DAOs
+│   ├── constants/             # AppConstants, default categories, currency symbols (GBP £ default)
+│   ├── database/              # Drift database schema, migrations, provider, and codegen
 │   │   ├── app_database.dart
+│   │   ├── app_database.g.dart
+│   │   ├── database_provider.dart
 │   │   └── tables.dart
-│   ├── theme/                 # AppTheme, colors, typography, spacing
-│   └── utils/                 # Currency formatters, date utilities, cycle math
+│   ├── theme/                 # AppTheme, CraftDecorations, TactilePress, typography, spacing
+│   │   ├── app_theme.dart
+│   │   ├── craft_decorations.dart
+│   │   └── tactile_press.dart
+│   └── utils/                 # CurrencyFormatter, PayCycleService
+│       ├── currency_formatter.dart
+│       └── pay_cycle_service.dart
 ├── features/
-│   ├── tracker/               # Core Tracker Ledger View & Grid
-│   │   ├── models/            # Tracker models, DTOs
-│   │   ├── state/             # TrackerStateNotifier, Riverpod providers
-│   │   └── views/             # TrackerLedgerScreen, ItemRowWidget, NoteModal
-│   ├── dashboard/             # Financial Analytics & Trend Visualizations
-│   │   ├── models/            # Chart series, aggregation models
-│   │   ├── state/             # DashboardNotifier
-│   │   └── views/             # DashboardScreen, TrendChart, CategoryBreakdown
+│   ├── dashboard/             # Financial Analytics & Trend Visualisations
+│   │   ├── models/            # analytics_models.dart
+│   │   ├── services/          # analytics_engine_service.dart
+│   │   ├── state/             # dashboard_notifier.dart
+│   │   └── views/             # dashboard_screen.dart & widgets/ (KPI cards, trend chart, breakdown)
 │   ├── importer/              # Excel / CSV Spreadsheet Importer
-│   │   ├── services/          # ExcelParserService, SmartMatcherService
-│   │   ├── state/             # ImportWorkflowNotifier
-│   │   └── views/             # FilePickerScreen, MappingPreviewScreen
-│   ├── item_detail/           # Create / Edit Item, Recurring Due Day, Debts
-│   │   ├── state/             # ItemDetailNotifier
-│   │   └── views/             # ItemFormScreen, DebtPayoffWidget
-│   ├── settings/              # Currency, Pay Cycle Start Day, Categories
-│   │   ├── state/             # SettingsNotifier
-│   │   └── views/             # SettingsScreen, CycleConfigWidget
+│   │   ├── models/            # import_workflow_models.dart, parsed_spreadsheet.dart, smart_match_result.dart
+│   │   ├── services/          # file_picker_service.dart, smart_matcher_service.dart, spreadsheet_parser_service.dart, spreadsheet_import_commit_service.dart
+│   │   ├── state/             # import_workflow_notifier.dart
+│   │   └── views/             # import_spreadsheet_dialog.dart
+│   ├── settings/              # Currency, Pay Cycle Start Day, Theme Mode, Categories
+│   │   ├── models/            # settings_state.dart
+│   │   ├── state/             # settings_notifier.dart, theme_mode_notifier.dart
+│   │   └── views/             # settings_screen.dart
+│   ├── shell/                 # Bottom Navigation Shell & Tab State
+│   │   ├── state/             # navigation_provider.dart
+│   │   └── views/             # app_shell_screen.dart
+│   ├── tracker/               # Core Tracker View, Month Quick-Jump & Entry Editors
+│   │   ├── models/            # tracker_ledger_models.dart
+│   │   ├── state/             # tracker_ledger_notifier.dart
+│   │   └── views/             # tracker_screen.dart, item_form_dialog.dart, entry_editor_dialog.dart, widgets/month_picker_sheet.dart
 │   └── updater/               # In-App GitHub Releases Auto-Update
-│       ├── services/          # GitHubReleaseService, OtaUpdateService
-│       ├── state/             # UpdateCheckNotifier
-│       └── views/             # UpdatePromptDialog, DownloadProgressBar
-└── main.dart                  # Application entry point & Riverpod ProviderScope
+│       ├── models/            # app_release.dart
+│       ├── services/          # github_release_service.dart, apk_download_service.dart
+│       ├── state/             # update_notifier.dart, update_state.dart
+│       └── views/             # update_prompt_dialog.dart
+├── app.dart                   # MaterialApp root, theme wiring & ProviderScope configuration
+└── main.dart                  # Application entry point
 ```
 
 ---
@@ -145,10 +158,11 @@ erDiagram
 ## 4. Business Logic & Calculation Engines
 
 ### 4.1 Pay Cycle Calculations
-For a cycle start day $S$ (e.g. 15):
-- A cycle labeled with month $M$ and year $Y$ spans from day $S$ of month $M-1$ through day $S-1$ of month $M$.
-- For example, if $S=15$, period `2026-01` spans **Dec 15, 2025 – Jan 14, 2026**.
-- Transactions or entries falling within $[(Y, M-1, S), (Y, M, S-1)]$ belong to period `(Y, M)`.
+For a cycle start day $S$:
+- When $S \le 1$, each period `(Y, M)` maps to calendar month $M$ (`1` to the last day of month $M$).
+- When $S > 1$ (e.g. $S = 15$), each period `(Y, M)` is keyed by its **starting month** and spans from day $\min(S, \text{daysInMonth}(Y, M))$ of month $M$ through day $\min(S - 1, \text{daysInMonth}(\text{nextYear}, \text{nextMonth}))$ of month $M+1$.
+- For example, if $S = 15$, period `2026-10` ("October 2026") spans **Oct 15, 2026 – Nov 14, 2026**.
+- Transactions or entries falling within `[(Y, M, startDay), (nextYear, nextMonth, endDay)]` belong to period `(Y, M)`.
 
 ### 4.2 Financial Health Formula
 For each cycle:
@@ -183,15 +197,26 @@ sequenceDiagram
 
 ---
 
-## 6. Continuous Delivery Pipeline & Secrets Spec
+## 6. Continuous Integration & Continuous Delivery Pipelines (`sdlc-ci` & `sdlc-cd`)
 
-### 6.1 GitHub Actions Workflow: `.github/workflows/ci-cd.yml`
-- **Trigger:**
-  - Pull Requests to `main`: Runs `test-and-build` (Analyze, Unit Tests, Build release APK).
-  - Pushes to `main`: Runs `test-and-build`, followed by `deploy` to create a GitHub Release with the compiled `.apk`.
-- **Artifact:** Release APK tagged as `release-v<run_number>` and labeled with commit SHA.
+### 6.1 Continuous Integration: `.github/workflows/ci.yml` (`sdlc-ci`)
+- **Permissions:** `contents: read` (least-privilege read-only verification).
+- **Concurrency:** `group: ${{ github.workflow }}-${{ github.ref }}` with `cancel-in-progress: ${{ github.event_name == 'pull_request' }}`.
+- **Trigger:** Runs on `pull_request` and `push` targeting `main`.
+- **Verification Sequence (`test-and-build`):**
+  1. `flutter pub get`
+  2. `flutter analyze`
+  3. `flutter test --reporter=expanded` (uploading `test-results.log` artefact on failure)
+  4. `flutter build apk --release --build-number=${{ github.run_number }} --android-skip-build-dependency-validation` (with `GRADLE_OPTS` bounded to `-Xmx3072m -XX:MaxMetaspaceSize=768m` for 7 GB CI runners)
 
-### 6.2 Required Secrets
+### 6.2 Continuous Delivery & Release: `.github/workflows/cd.yml` (`sdlc-cd`)
+- **Permissions:** `contents: write`.
+- **Trigger:** Runs on `push` to `main` (continuous physical device delivery), SemVer tags (`v*.*.*`), and `workflow_dispatch` (accepting a `tag` input).
+- **Two-Job Artefact Handover:**
+  1. **`build-release`:** Runs `flutter analyze`, `flutter test`, builds the release APK with bounded Gradle JVM memory (`-Xmx3072m`), and uploads `app-release-apk` via `actions/upload-artifact@v4`.
+  2. **`release` (`needs: build-release`):** Checks out full Git history (`fetch-depth: 0`), downloads `app-release-apk` via `actions/download-artifact@v4`, extracts release notes using the 3-tier `CHANGELOG.md`-first cascade (exact tag section → `## [Unreleased]` → sanitised commit fallback preserving `hotfix:` and filtering internal commits), and publishes the GitHub Release via `softprops/action-gh-release@v2` with the `.apk` asset.
+
+### 6.3 Required Secrets
 | Secret Name | Purpose | Required For |
 | :--- | :--- | :--- |
-| `GITHUB_TOKEN` | Automatic GitHub-provided secret to create releases and upload release `.apk` assets | Deploy job (automatic) |
+| `GITHUB_TOKEN` | Automatic GitHub-provided secret to publish GitHub Releases and upload release `.apk` assets | `release` job in `.github/workflows/cd.yml` (automatic) |

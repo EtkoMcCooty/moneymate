@@ -1,6 +1,7 @@
 # Project Brainstorm & Discovery
 
-> **Status:** Discovery Completed
+> **Status:** Discovery Completed  
+> **Project Tier:** Production  
 > **Last Updated:** 2026-10-25
 
 ---
@@ -45,7 +46,7 @@
 ## 5. Target Environment & Delivery Model
 - **Delivery Model Category:** Mobile App (Cross-Platform)
 - **Target Platform(s):** Android & iOS
-- **CI/CD & Release Strategy:** Automated GitHub Actions build producing signed/unsigned release APKs attached directly to GitHub Releases on tag or merge to `main`.
+- **CI/CD & Release Strategy:** Separated GitHub Actions workflows — `.github/workflows/ci.yml` (`sdlc-ci`) for PR/main verification and `.github/workflows/cd.yml` (`sdlc-cd`) for producing signed/unsigned release APKs attached directly to GitHub Releases on `main` pushes and `v*.*.*` tags.
 - **Local Dev / Device Execution:** `flutter run -d <device>` / Android Virtual Device / iOS Simulator
 - **Auto-Update Delivery:** App queries GitHub Releases endpoint to detect new releases and prompts the user to download and install updates.
 

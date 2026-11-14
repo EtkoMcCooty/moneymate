@@ -2,6 +2,9 @@
 
 > This file is auto-discovered by the agent environment at workspace root to enforce project constraints, coding standards, and commands across all turns.
 
+> **Project Tier:** Production  
+> **Last Dependency & Toolchain Audit:** 2026-11-14 (TTL: 14 days)  
+
 ## 1. Project Overview & Architecture
 - **Project Name:** MoneyMate
 - **Tech Stack:** Flutter 3.x, Dart 3.x, Drift / SQLite (offline-first local database), Riverpod (state management), `fl_chart` (analytics and trends), `excel` / `csv` (tracker importers)
@@ -10,6 +13,7 @@
 - **Target Device / Local Run:** `flutter run -d <device>` (or `flutter run -d chrome` / `flutter run -d windows` for rapid UI testing if configured)
 
 ## 2. Coding Standards & Conventions
+- **UK English Standard:** Always use UK English / British spelling (`modernise`, `productionise`, `behaviour`, `colour`, `analyse`, `artefact`, `initialise`, `catalogue`, `synchronise`) across code comments, documentation, and generated artefacts (note: user-facing app copy uses UK English unless matching existing established UI strings).
 - Maintain documentation integrity and preserve docstrings.
 - **Architecture Pattern:** Follow **Vertical Slice Architecture** (feature folders under `lib/features/<slice>/` encapsulating UI views, state/viewmodels, and domain/data logic), with shared foundation code under `lib/core/`.
 - Adhere strictly to project architecture and contracts documented in `docs/ARCHITECTURE.md`.
@@ -34,7 +38,7 @@
 - **Known Issue / Diagnostics:** The update check / install mechanism is currently reported as not working on physical devices. Priority must be given to ensuring:
   1. The in-app updater properly queries releases from `EtkoMcCooty/moneymate` and displays descriptive feedback if no releases exist or network fails.
   2. Android `<queries>` permissions in `AndroidManifest.xml` allow `url_launcher` to launch browser download URLs (`https` / `http` intents) on Android 11+.
-  3. CI/CD release workflow reliably publishes release APK binaries to the public repository.
+  3. Continuous Integration (`.github/workflows/ci.yml` via `sdlc-ci`) gates every PR and push on `main`, and Continuous Delivery (`.github/workflows/cd.yml` via `sdlc-cd`) reliably publishes release APK binaries to GitHub Releases.
 
 ## 6. User-Facing Changelog & Release Notes
 - **Source of Truth:** Maintain plain-language, jargon-free entries in `CHANGELOG.md` for every release.

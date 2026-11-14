@@ -1,23 +1,27 @@
-name: CI/CD Pipeline (Mobile & APK Release)
+name: Continuous Delivery & Release
 
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to publish (e.g. v1.0.0)'
+        required: true
+        type: string
 
 permissions:
   contents: write
 
 jobs:
-  test-and-build:
-    name: Test & Build Integrity
+  build-release:
+    name: Verify & Build Release Package
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Java
         uses: actions/setup-java@v5
@@ -35,33 +39,25 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Analyze & Lint
-        run: flutter analyze
-
-      - name: Run Test Suite
+      - name: Static Analysis & Test Suite
         run: |
-          set -o pipefail
-          flutter test --reporter=expanded 2>&1 | tee test-results.log
-
-      - name: Upload Test Results on Failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results-log
-          path: test-results.log
+          flutter analyze
+          flutter test
 
       - name: Build Release APK
+        env:
+          GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx3072m -XX:MaxMetaspaceSize=768m"
         run: flutter build apk --release --build-number=${{ github.run_number }} --android-skip-build-dependency-validation
 
-      - name: Upload APK Artifact
+      - name: Upload Release APK Artefact
         uses: actions/upload-artifact@v4
         with:
           name: app-release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
 
-  deploy:
-    name: Publish Release APK
-    needs: test-and-build
+  release:
+    name: Publish GitHub Release
+    needs: build-release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -69,24 +65,24 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Download APK Artifact
+      - name: Download Release APK Artefact
         uses: actions/download-artifact@v4
         with:
           name: app-release-apk
-          path: release-build
+          path: release-assets/
 
       - name: Determine Release Tag & Metadata
         id: release_info
         run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            echo "tag=pr-${{ github.event.pull_request.number }}-v${{ github.run_number }}" >> $GITHUB_OUTPUT
-            echo "name=PR #${{ github.event.pull_request.number }} Preview (Build ${{ github.run_number }})" >> $GITHUB_OUTPUT
-            echo "prerelease=true" >> $GITHUB_OUTPUT
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ inputs.tag }}"
+          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            TAG="${{ github.ref_name }}"
           else
-            echo "tag=v0.1.0+${{ github.run_number }}" >> $GITHUB_OUTPUT
-            echo "name=Release v0.1.0+${{ github.run_number }}" >> $GITHUB_OUTPUT
-            echo "prerelease=false" >> $GITHUB_OUTPUT
+            TAG="v0.1.0+${{ github.run_number }}"
           fi
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "name=Release ${TAG}" >> "$GITHUB_OUTPUT"
 
       - name: Generate Changelog & Release Notes
         id: changelog
@@ -98,8 +94,8 @@ jobs:
           # 1. Try to extract matching version section from CHANGELOG.md
           if [ -f CHANGELOG.md ]; then
             NOTES=$(awk -v tag="$TAG" -v ctag="$CLEAN_TAG" '
-              $0 ~ "^## \\[" (tag|ctag) "\\]" { flag=1; next }
-              flag && /^## \\[/ { flag=0 }
+              index($0, "## [" tag "]") == 1 || index($0, "## [" ctag "]") == 1 { flag=1; next }
+              flag && /^## \[/ { flag=0 }
               flag { print }
             ' CHANGELOG.md | sed -e '/^[[:space:]]*$/d')
           fi
@@ -116,13 +112,17 @@ jobs:
             fi
           fi
 
-          # 3. Fallback: Parse and sanitize git commits
+          # 3. Fallback: Parse and sanitise git commits between tags
           if [ -z "$NOTES" ]; then
-            PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+            TARGET_REF="$TAG"
+            if ! git rev-parse --verify "${TARGET_REF}" >/dev/null 2>&1; then
+              TARGET_REF="HEAD"
+            fi
+            PREV_TAG=$(git describe --tags --abbrev=0 "${TARGET_REF}^" 2>/dev/null || echo "")
             if [ -n "$PREV_TAG" ]; then
-              RAW_COMMITS=$(git log ${PREV_TAG}..HEAD --pretty=format:"%s" --no-merges)
+              RAW_COMMITS=$(git log "${PREV_TAG}..${TARGET_REF}" --pretty=format:"%s" --no-merges)
             else
-              RAW_COMMITS=$(git log -n 10 --pretty=format:"%s" --no-merges)
+              RAW_COMMITS=$(git log -n 10 "${TARGET_REF}" --pretty=format:"%s" --no-merges)
             fi
 
             NOTES=$(echo "$RAW_COMMITS" | while IFS= read -r line; do
@@ -137,7 +137,6 @@ jobs:
                 echo "- hotfix: $cleaned"
               elif echo "$line" | grep -qiE '^(feat|fix|perf|refactor)\([^)]*\):'; then
                 cleaned=$(echo "$line" | sed -E 's/^(feat|fix|perf|refactor)\([^)]*\):\s*//I' | sed -E 's/\s*\([#0-9, ]+\)$//')
-                # Capitalize first character
                 first="$(echo "${cleaned:0:1}" | tr '[:lower:]' '[:upper:]')"
                 rest="${cleaned:1}"
                 echo "- ${first}${rest}"
@@ -152,11 +151,11 @@ jobs:
           fi
 
           {
-            echo "notes<<EOF"
+            echo "notes<<__CHANGELOG_EOF__"
             echo "### 🚀 What's New"
             echo "$NOTES"
-            echo "EOF"
-          } >> $GITHUB_OUTPUT
+            echo "__CHANGELOG_EOF__"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Create GitHub Release with Sideload APK
         uses: softprops/action-gh-release@v2
@@ -164,7 +163,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           tag_name: ${{ steps.release_info.outputs.tag }}
           name: ${{ steps.release_info.outputs.name }}
-          prerelease: ${{ steps.release_info.outputs.prerelease == 'true' }}
+          prerelease: false
           generate_release_notes: false
           body: ${{ steps.changelog.outputs.notes }}
-          files: release-build/*.apk
+          files: release-assets/*.apk
