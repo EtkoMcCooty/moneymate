@@ -173,6 +173,13 @@ $$\text{Total Savings \& Investments} = \sum (\text{Savings Put Away} + \text{In
 $$\text{Disposable Income} = \text{Total Income} - (\text{Total Expenses} + \text{Total Debt Payments} + \text{Total Savings})$$
 $$\text{Remaining Debt Balance} = \text{Previous Balance} - \text{Debt Paid This Month}$$
 
+### 4.3 Analytics Timeframe & Single-Month Comparative Filtering
+- **Unfiltered Overview Mode:** Defaults to timeframe averages (`3M`, `6M`, `1Y`, `All Time`) across active periods (`selectedPeriodSummary == null`), aggregating category breakdowns across the active window.
+- **Single-Month Filter Mode:** Selecting a pay period via `MonthPickerSheet` sets `filteredMonthKey` and computes comparative deltas against the active timeframe average:
+  $$\Delta \text{Disposable Income} = \text{Disposable Income}_{\text{period}} - \overline{\text{Disposable Income}}_{\text{timeframe}}$$
+  $$\Delta \text{Savings Rate} = \text{Savings Rate}_{\text{period}} - \overline{\text{Savings Rate}}_{\text{timeframe}}$$
+- **Reset Invariants:** Tapping the active filter banner clear button or switching timeframe chips resets `filteredMonthKey` and `selectedPeriodKey` back to the timeframe overview.
+
 ---
 
 ## 5. In-App Auto-Update Delivery Architecture

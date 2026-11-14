@@ -129,6 +129,13 @@ Scenario: View multi-period financial trends
   Then a breakdown chart shows Income vs. Total Expenses vs. Disposable Income
   And the user can filter between 3-month, 6-month, 1-year, and all-time views
   And tapping on any period reveals category-level breakdowns
+
+Scenario: Filter dashboard to a single month with comparative KPI deltas
+  Given financial data across multiple monthly cycles on the Analytics Dashboard
+  When the user opens the AppBar month picker and selects a specific pay period
+  Then an active filter banner ("Viewing <Month Year>") is displayed with a one-tap clear button
+  And the Disposable Income and Savings Rate KPI cards display comparative delta badges against the selected timeframe average
+  And clearing the filter or switching timeframe chips restores the overall timeframe average view
 ```
 
 ### US-7: Settings & Currency Localization

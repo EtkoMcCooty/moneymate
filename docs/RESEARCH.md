@@ -91,7 +91,7 @@
 | `softprops/action-gh-release@v2` | `softprops/action-gh-release@v3` | `v2` is superseded by `v3` with modern Node 24 runner compatibility. |
 
 ### 5.2 Ecosystem Pitfalls, Build Prerequisites & Security Invariants
-- **CI Runner Memory Budget (7 GB RAM Limit):** GitHub-hosted `ubuntu-latest` runners have 7 GB RAM. Always constrain Gradle in `android/gradle.properties` and CI env (`-Xmx3072m -XX:MaxMetaspaceSize=768m` and `kotlin.daemon.jvmargs=-Xmx1536m`) to prevent Linux OOM-killer exit code `137` during `assembleRelease`.
+- **CI Runner Image & Memory Budget (`ubuntu-26.04`, 7 GB RAM Limit):** Workflows pin `runs-on: ubuntu-26.04` (Ubuntu 26.04 LTS) explicitly to avoid floating `ubuntu-latest` migration notices (`actions/runner-images#14748`). GitHub-hosted Linux runners have 7 GB RAM; always constrain Gradle in `android/gradle.properties` and CI env (`-Xmx3072m -XX:MaxMetaspaceSize=768m` and `kotlin.daemon.jvmargs=-Xmx1536m`) to prevent Linux OOM-killer exit code `137` during `assembleRelease`.
 - **Android 11+ (`API 30+`) Package Visibility:** `AndroidManifest.xml` must declare `<queries>` for `https` browser intents so `url_launcher` can open fallback GitHub Release download URLs on physical devices.
 - **Privacy & Security Invariant:** 100% offline-first financial storage; user financial data never leaves the local SQLite database.
 
