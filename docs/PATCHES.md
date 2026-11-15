@@ -16,6 +16,7 @@
 | `2026-11-05` | `fix/importer-in-column-sections-and-clean-replace` | `fix` | Recognised in-column section headers, prevented duplicate items via clean replace on re-import, and fixed category mapping | `lib/features/importer/services/spreadsheet_parser_service.dart`, `lib/features/importer/services/spreadsheet_import_commit_service.dart`, `lib/features/importer/services/smart_matcher_service.dart` | `d39e622` / `#17` (`b10542c`) |
 | `2026-11-06` | `style/executive-ui-craft-redesign` | `style` | Redesigned theme and screens with executive depth (`CraftDecorations`), tactile press interactions (`TactilePress`), and tabular typography | `lib/core/theme/app_theme.dart`, `lib/core/theme/craft_decorations.dart`, `lib/core/theme/tactile_press.dart`, feature views | `b6e17f5` / `#20` (`ae0dde3`) |
 | `2026-11-11` | `chore/flutter-3-50-material-ui-upgrade` | `chore` | Migrated `package:flutter/material.dart` imports to standalone `package:material_ui/material_ui.dart` and upgraded AGP 9.1.1 / Gradle 9.3.1 for Flutter 3.50 compatibility | `pubspec.yaml`, `pubspec.lock`, all UI files in `lib/` and `test/`, Android Gradle config | `751d53e` / `955cf6b` / `936ebfb` (in `#21` `330c563`) |
+| `2026-11-15` | `fix/cd-monotonic-build-number` | `fix` | Restored monotonic Android build numbers (`github.run_number + 70`) and dynamic `pubspec.yaml` base SemVer extraction in `.github/workflows/cd.yml` after CI/CD split reset `run_number` | `.github/workflows/cd.yml`, `CHANGELOG.md`, `docs/ARCHITECTURE.md` | — |
 
 ---
 
@@ -91,3 +92,11 @@
   * `android/` Gradle build configuration — Updated AGP 9.1.1 and Gradle wrapper.
 * **Verification:** `flutter test` & `flutter analyze` passed; documented in `docs/RESEARCH.md` and `docs/adr/0002-technology-stack-and-runtime.md`.
 * **Commit / PR Ref:** `751d53e`, `955cf6b`, `936ebfb` (merged in PR `#21` `330c563`)
+
+### `2026-11-15` — `fix/cd-monotonic-build-number` (`fix`)
+* **Summary:** Offset `.github/workflows/cd.yml` build numbers (`github.run_number + 70`) above legacy `ci-cd.yml` build `70` and read base SemVer dynamically from `pubspec.yaml` so in-app update checks detect newer releases and Android permits in-place APK upgrades.
+* **Key Files Modified:**
+  * `.github/workflows/cd.yml` — Added `Determine Monotonic Build Number` step and dynamic `pubspec.yaml` base SemVer extraction for release tags.
+  * `CHANGELOG.md`, `docs/ARCHITECTURE.md`, `docs/PATCHES.md` — Documented monotonic release numbering behaviour.
+* **Verification:** `flutter analyze` and `flutter test` passed; workflow syntax and tag/build logic verified.
+* **Commit / PR Ref:** Recorded on `main` following PR `#25` cleanup

@@ -220,8 +220,8 @@ sequenceDiagram
 - **Permissions:** `contents: write`.
 - **Trigger:** Runs on `push` to `main` (continuous physical device delivery), SemVer tags (`v*.*.*`), and `workflow_dispatch` (accepting a `tag` input).
 - **Two-Job Artefact Handover:**
-  1. **`build-release`:** Runs `flutter analyze`, `flutter test`, builds the release APK with bounded Gradle JVM memory (`-Xmx3072m`), and uploads `app-release-apk` via `actions/upload-artifact@v7`.
-  2. **`release` (`needs: build-release`):** Checks out full Git history (`fetch-depth: 0`), downloads `app-release-apk` via `actions/download-artifact@v8`, extracts release notes using the 3-tier `CHANGELOG.md`-first cascade (exact tag section → `## [Unreleased]` → sanitised commit fallback preserving `hotfix:` and filtering internal commits), and publishes the GitHub Release via `softprops/action-gh-release@v3` with the `.apk` asset.
+  1. **`build-release`:** Runs `flutter analyze`, `flutter test`, computes a strictly monotonic build number (`github.run_number + 70` to preserve continuity past legacy `ci-cd.yml` run `70`), builds the release APK with bounded Gradle JVM memory (`-Xmx3072m`), and uploads `app-release-apk` via `actions/upload-artifact@v7`.
+  2. **`release` (`needs: build-release`):** Checks out full Git history (`fetch-depth: 0`), reads the base SemVer from `pubspec.yaml` combined with the monotonic build number for `main` pushes (`v<semver>+<build>`), downloads `app-release-apk` via `actions/download-artifact@v8`, extracts release notes using the 3-tier `CHANGELOG.md`-first cascade (exact tag section → `## [Unreleased]` → sanitised commit fallback preserving `hotfix:` and filtering internal commits), and publishes the GitHub Release via `softprops/action-gh-release@v3` with the `.apk` asset.
 
 ### 6.3 Required Secrets
 | Secret Name | Purpose | Required For |

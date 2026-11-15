@@ -44,10 +44,16 @@ jobs:
           flutter analyze
           flutter test
 
+      - name: Determine Monotonic Build Number
+        id: build_meta
+        run: |
+          BUILD_NUMBER=$(( ${{ github.run_number }} + 70 ))
+          echo "build_number=${BUILD_NUMBER}" >> "$GITHUB_OUTPUT"
+
       - name: Build Release APK
         env:
           GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx3072m -XX:MaxMetaspaceSize=768m"
-        run: flutter build apk --release --build-number=${{ github.run_number }} --android-skip-build-dependency-validation
+        run: flutter build apk --release --build-number=${{ steps.build_meta.outputs.build_number }} --android-skip-build-dependency-validation
 
       - name: Upload Release APK Artefact
         uses: actions/upload-artifact@v7
@@ -74,12 +80,17 @@ jobs:
       - name: Determine Release Tag & Metadata
         id: release_info
         run: |
+          BASE_VER=$(grep '^version:' pubspec.yaml | head -n1 | tr -d '\r' | sed -E 's/^version:[[:space:]]*([^+ ]+).*/\1/' || true)
+          if [ -z "$BASE_VER" ]; then
+            BASE_VER="0.1.0"
+          fi
+          BUILD_NUMBER=$(( ${{ github.run_number }} + 70 ))
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             TAG="${{ inputs.tag }}"
           elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
             TAG="${{ github.ref_name }}"
           else
-            TAG="v0.1.0+${{ github.run_number }}"
+            TAG="v${BASE_VER}+${BUILD_NUMBER}"
           fi
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
           echo "name=Release ${TAG}" >> "$GITHUB_OUTPUT"
