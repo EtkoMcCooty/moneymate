@@ -9,6 +9,7 @@ import '../../../core/utils/pay_cycle_service.dart';
 import '../models/tracker_ledger_models.dart';
 import '../state/tracker_ledger_notifier.dart';
 import '../../importer/views/import_spreadsheet_dialog.dart';
+import '../../shell/state/navigation_provider.dart';
 import 'entry_editor_dialog.dart';
 import 'item_form_dialog.dart';
 import 'widgets/month_picker_sheet.dart';
@@ -302,10 +303,94 @@ class TrackerScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 10),
 
-                  ...ledgerState.sections.map((section) {
-                    return _buildCategorySectionCard(
-                        context, ref, section, ledgerState.currencySymbol);
-                  }),
+                  if (ledgerState.sections.isEmpty)
+                    Container(
+                      key: const Key('tracker_empty_sections_card'),
+                      decoration: CraftDecorations.cardShadowDecoration(context),
+                      child: Material(
+                        color: CraftDecorations.surfaceColor(context),
+                        shape: CraftDecorations.cardShape(context),
+                        child: Padding(
+                          padding: const EdgeInsets.all(24.0),
+                          child: Column(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .primary
+                                      .withValues(alpha: 0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.category_outlined,
+                                  size: 32,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              ),
+                              const SizedBox(height: 14),
+                              Text(
+                                'No budget sections yet',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.w800),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                'Add categories in Settings or import a spreadsheet to start tracking.',
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                              ),
+                              const SizedBox(height: 16),
+                              Wrap(
+                                spacing: 10,
+                                runSpacing: 8,
+                                alignment: WrapAlignment.center,
+                                children: [
+                                  FilledButton.icon(
+                                    key: const Key(
+                                        'tracker_empty_settings_button'),
+                                    onPressed: () {
+                                      ref
+                                          .read(
+                                              navigationIndexProvider.notifier)
+                                          .state = 2;
+                                    },
+                                    icon: const Icon(Icons.tune_rounded,
+                                        size: 18),
+                                    label: const Text('Open Settings'),
+                                  ),
+                                  OutlinedButton.icon(
+                                    key: const Key(
+                                        'tracker_empty_import_button'),
+                                    onPressed: () =>
+                                        ImportSpreadsheetDialog.show(context),
+                                    icon: const Icon(Icons.upload_file_outlined,
+                                        size: 18),
+                                    label: const Text('Import spreadsheet'),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    )
+                  else
+                    ...ledgerState.sections.map((section) {
+                      return _buildCategorySectionCard(
+                          context, ref, section, ledgerState.currencySymbol);
+                    }),
 
                   const SizedBox(height: 32),
                 ],

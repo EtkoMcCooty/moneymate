@@ -2,8 +2,10 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../dashboard/state/dashboard_notifier.dart';
 import '../../dashboard/views/dashboard_screen.dart';
 import '../../settings/views/settings_screen.dart';
+import '../../tracker/state/tracker_ledger_notifier.dart';
 import '../../tracker/views/tracker_screen.dart';
 import '../../updater/state/update_notifier.dart';
 import '../../updater/state/update_state.dart';
@@ -54,6 +56,15 @@ class _AppShellScreenState extends ConsumerState<AppShellScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<int>(navigationIndexProvider, (previous, next) {
+      if (previous == next) return;
+      if (next == 0) {
+        ref.read(trackerLedgerNotifierProvider.notifier).loadLedger();
+      } else if (next == 1) {
+        ref.read(dashboardNotifierProvider.notifier).loadDashboard();
+      }
+    });
+
     final selectedIndex = ref.watch(navigationIndexProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 

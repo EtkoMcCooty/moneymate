@@ -3,6 +3,7 @@
 All notable changes to MoneyMate are documented here in plain, user-friendly language.
 
 ## [Unreleased]
+- Added helpful empty-state shortcuts across Tracker and Insights, automatic screen refreshing when switching tabs, and extra edge-case safeguards for numbers and dates.
 - Fixed in-app update version numbering so newer releases are always detected and install smoothly.
 - Added an automatic background update check when you open the app so you are notified right away when a new version is ready to install.
 - Added a Month Filter picker on the Insights dashboard so you can jump to any single month, see how that month compares against your average, and reset back to your overall trend with one tap.

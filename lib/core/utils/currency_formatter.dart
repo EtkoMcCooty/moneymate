@@ -12,11 +12,12 @@ class CurrencyFormatter {
     String symbol = AppConstants.defaultCurrencySymbol,
     int decimalDigits = 2,
   }) {
+    final safeAmount = (amount.isNaN || amount.isInfinite) ? 0 : amount;
     final formatter = NumberFormat.currency(
       symbol: symbol,
       decimalDigits: decimalDigits,
     );
-    return formatter.format(amount);
+    return formatter.format(safeAmount);
   }
 
   /// Attempts to parse a formatted currency string back into a [double].
