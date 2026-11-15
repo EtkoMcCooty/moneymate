@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/craft_decorations.dart';
 import '../../../core/utils/pay_cycle_service.dart';
+import '../../importer/views/import_spreadsheet_dialog.dart';
+import '../../shell/state/navigation_provider.dart';
 import '../../tracker/views/widgets/month_picker_sheet.dart';
 import '../models/analytics_models.dart';
 import '../state/dashboard_notifier.dart';
@@ -146,6 +148,30 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                             color: Theme.of(context).colorScheme.onSurfaceVariant,
                             fontWeight: FontWeight.w500,
                           ),
+                    ),
+                    const SizedBox(height: 20),
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 8,
+                      alignment: WrapAlignment.center,
+                      children: [
+                        FilledButton.icon(
+                          key: const Key('dashboard_empty_go_tracker_button'),
+                          onPressed: () {
+                            ref.read(navigationIndexProvider.notifier).state =
+                                0;
+                          },
+                          icon: const Icon(Icons.table_chart_rounded, size: 18),
+                          label: const Text('Go to Tracker'),
+                        ),
+                        OutlinedButton.icon(
+                          key: const Key('dashboard_empty_import_button'),
+                          onPressed: () =>
+                              ImportSpreadsheetDialog.show(context),
+                          icon: const Icon(Icons.upload_file_outlined, size: 18),
+                          label: const Text('Import spreadsheet'),
+                        ),
+                      ],
                     ),
                   ],
                 ),

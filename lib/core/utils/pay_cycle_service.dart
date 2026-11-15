@@ -125,10 +125,21 @@ class PayCycleService {
   }
 
   /// Formats [periodKey] (e.g. `2026-01`) into a human-friendly title (e.g. `January 2026`).
+  /// Falls back gracefully if [periodKey] is empty or malformed.
   static String formatPeriodTitle(String periodKey) {
-    final parts = periodKey.split('-');
-    final year = int.parse(parts[0]);
-    final month = int.parse(parts[1]);
+    final trimmed = periodKey.trim();
+    if (trimmed.isEmpty) {
+      return 'Current Period';
+    }
+    final parts = trimmed.split('-');
+    if (parts.length != 2) {
+      return trimmed;
+    }
+    final year = int.tryParse(parts[0]);
+    final month = int.tryParse(parts[1]);
+    if (year == null || month == null || month < 1 || month > 12) {
+      return trimmed;
+    }
     return '${monthNames[month - 1]} $year';
   }
 
