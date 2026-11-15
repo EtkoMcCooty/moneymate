@@ -682,9 +682,12 @@ class SettingsScreen extends ConsumerWidget {
                         style: TextStyle(fontWeight: FontWeight.w700),
                       ),
                       subtitle: Text(
-                        updateState.currentVersion != null
-                            ? 'Version ${updateState.currentVersion}'
-                            : 'Download the latest version',
+                        updateState.status == UpdateStatus.available &&
+                                updateState.release != null
+                            ? 'Update ${updateState.release!.version} available (Current: ${updateState.currentVersion ?? '0.1.0'})'
+                            : updateState.currentVersion != null
+                                ? 'Version ${updateState.currentVersion}'
+                                : 'Download the latest version',
                         style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
                       ),
                       trailing: updateState.status == UpdateStatus.checking

@@ -11,12 +11,14 @@ class UpdatePromptDialog extends StatefulWidget {
   final AppRelease release;
   final String currentVersion;
   final ApkDownloadService? downloadService;
+  final VoidCallback? onDismissed;
 
   const UpdatePromptDialog({
     super.key,
     required this.release,
     required this.currentVersion,
     this.downloadService,
+    this.onDismissed,
   });
 
   /// Displays the update dialog modally.
@@ -25,6 +27,7 @@ class UpdatePromptDialog extends StatefulWidget {
     required AppRelease release,
     required String currentVersion,
     ApkDownloadService? downloadService,
+    VoidCallback? onDismissed,
   }) {
     return showDialog<void>(
       context: context,
@@ -33,6 +36,7 @@ class UpdatePromptDialog extends StatefulWidget {
         release: release,
         currentVersion: currentVersion,
         downloadService: downloadService,
+        onDismissed: onDismissed,
       ),
     );
   }
@@ -307,7 +311,10 @@ class _UpdatePromptDialogState extends State<UpdatePromptDialog> {
             ),
           ] else if (_errorMessage != null) ...[
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () {
+                widget.onDismissed?.call();
+                Navigator.of(context).pop();
+              },
               child: const Text('Dismiss'),
             ),
             TextButton(
@@ -323,7 +330,10 @@ class _UpdatePromptDialogState extends State<UpdatePromptDialog> {
             ),
           ] else ...[
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () {
+                widget.onDismissed?.call();
+                Navigator.of(context).pop();
+              },
               child: const Text('Later'),
             ),
             FilledButton(
