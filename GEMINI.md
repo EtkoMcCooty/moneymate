@@ -29,8 +29,11 @@
 ## 4. Verification & Testing Commands
 - **Install Dependencies:** `flutter pub get`
 - **Lint & Static Analysis:** `flutter analyze`
-- **Run Tests:** `flutter test`
+- **Run Tests:** `flutter test -j 2 --timeout 60s` (or target a single test file during rapid edit-verify loops)
 - **Build Artifact (Release APK):** `flutter build apk --release`
+- **Windows / OneDrive Sandbox & Hang Prevention:**
+  - Run `flutter`, `dart`, and `git` write/network commands (`git switch`, `git fetch`, `git pull`, `git commit`, `git push`) directly with `BypassSandbox: true` ("unless mentioned otherwise" exception) rather than testing them in Standard Sandbox Mode, where `flutter`/`dart` deadlock silently and `git` fails on `.git/*.lock` permissions.
+  - Keep read-only filesystem/search/inspection commands (`rg`, `Get-Content`, `Get-ChildItem`, `git status`, `git diff`, `git log`) in Standard Sandbox Mode (`BypassSandbox: false`).
 - **CI Runner Memory Constraints:** In `android/gradle.properties`, JVM heap and daemon allocations must be kept within standard CI runner limits (7 GB total runner RAM). Always maintain `-Xmx3072m -XX:MaxMetaspaceSize=768m` and `kotlin.daemon.jvmargs=-Xmx1536m` to prevent Linux kernel Out-Of-Memory (OOM) killer termination during `assembleRelease`.
 
 ## 5. Device Testing & In-App Auto-Updater
