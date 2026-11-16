@@ -3,6 +3,7 @@
 All notable changes to MoneyMate are documented here in plain, user-friendly language.
 
 ## [Unreleased]
+- Added a 'Pick Month' chip directly in the Insights filter bar alongside 3 Months, 6 Months, 1 Year, and All Time so you can easily filter by any individual month.
 
 ## [v0.2.0] - 2026-11-16
 - Added a new MoneyMate app icon for your home screen and app drawer.
