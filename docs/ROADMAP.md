@@ -1,7 +1,7 @@
 # Project Roadmap & Execution Ledger (Vertical Slice Architecture)
 
 > **Overall Progress:** 19 / 19 tasks completed (100%)  
-> **Last Updated:** 2026-11-15  
+> **Last Updated:** 2026-11-16  
 
 ---
 
@@ -17,30 +17,30 @@
 
 ## 🗺️ Milestone Schedule
 
-### Milestone 1: App Shell, DB & Auto-Update Foundation
+### Milestone 1: App Shell, DB & Auto-Update Foundation [SHIPPED - v0.2.0 (2026-11-16)]
 - [x] [app-scaffold] App Shell & Theme: Initialize Flutter project, Riverpod, AppTheme (colors, typography, GBP £ currency formatting default), and bottom navigation shell (Tracker, Dashboard, Settings).
 - [x] [db-foundation] Drift SQLite Database: Set up Drift database tables (trackers, categories, items, entries, debts, settings), DAOs, and database smoke unit tests.
 - [x] [github-updater-slice] In-App Auto-Updater: GitHub Releases API client comparing local vs remote semver, update notification dialog, and APK installer trigger for instant continuous delivery.
 
-### Milestone 2: Settings & Pay Cycle Configuration Slice (End-to-End)
+### Milestone 2: Settings & Pay Cycle Configuration Slice (End-to-End) [SHIPPED - v0.2.0 (2026-11-16)]
 - [x] [pay-cycle-engine] Pay Cycle Math Engine: Domain service calculating custom pay period date spans (e.g. 15th to 14th) and period key mappings with comprehensive unit tests.
 - [x] [settings-slice] Settings View & State: Settings screen, Riverpod notifier, and Drift integration for pay cycle start day, currency format/symbol (£ default), and category management.
 
-### Milestone 3: Tracker Ledger & In-Line Customization Slice (Core Value - End-to-End)
+### Milestone 3: Tracker Ledger & In-Line Customization Slice (Core Value - End-to-End) [SHIPPED - v0.2.0 (2026-11-16)]
 - [x] [tracker-ledger-ui] Tracker Ledger Grid: Interactive ledger displaying Income, Household, Personal, Other, Debts, Savings, and Investments with collapsible sections.
 - [x] [tracker-item-crud] Item Management & Due Dates: Create, update, archive items with optional recurring due day tags (e.g., Rent on 29th) and debt balance tracking.
 - [x] [tracker-entry-editor] In-Line Entry & Note Editor: Inline monthly cell editing, context note modals (e.g. "[1] Half Nursery fees"), and instant recalculation of totals and disposable income.
 
-### Milestone 4: Spreadsheet Importer Slice (Excel & CSV - End-to-End)
+### Milestone 4: Spreadsheet Importer Slice (Excel & CSV - End-to-End) [SHIPPED - v0.2.0 (2026-11-16)]
 - [x] [importer-parsers] Spreadsheet File Parsers: File ingestion engine for `.xlsx` and `.csv` files parsing multi-month columns, headers, and values with unit tests.
 - [x] [smart-matcher] Smart Category Matcher: Heuristic rule engine automatically categorizing row labels (e.g. "Rent (29th)" -> Household, day 29; "Wage" -> Income).
 - [x] [importer-ui-flow] Importer Flow & Review UI: File picker, pre-import category preview/adjustment modal, and atomic database commit.
 
-### Milestone 5: Interactive Analytics Dashboard Slice (End-to-End)
+### Milestone 5: Interactive Analytics Dashboard Slice (End-to-End) [SHIPPED - v0.2.0 (2026-11-16)]
 - [x] [dashboard-analytics-engine] Aggregation Engine: Domain engine computing financial metrics (income, expenses, debt payoff, savings, disposable income) over 3M, 6M, 1Y, and all-time.
 - [x] [dashboard-charts-ui] Interactive Charts & Visuals: `fl_chart` trend lines, period filters, and category distribution breakdown views.
 
-### Milestone 6: Post-Review UX Polish & Production Readiness
+### Milestone 6: Post-Review UX Polish & Production Readiness [SHIPPED - v0.2.0 (2026-11-16)]
 - [x] [pay-cycle-date-alignment] Pay Cycle Date Alignment: Map date spans (e.g. 15 Oct – 14 Nov) to starting month (`2026-10`) in math engine and importer parser.
 - [x] [dark-mode-theme] Dark Mode Option: Theme mode toggle (System, Light, Dark) in Settings with SQLite persistence and reactive switching.
 - [x] [tracker-month-filter] Tracker Month Quick-Jump: Month picker sheet in Tracker header for rapid navigation across multi-year cycles.
