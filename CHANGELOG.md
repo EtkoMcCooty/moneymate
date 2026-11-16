@@ -3,6 +3,8 @@
 All notable changes to MoneyMate are documented here in plain, user-friendly language.
 
 ## [Unreleased]
+
+## [v0.2.0] - 2026-11-16
 - Added a new MoneyMate app icon for your home screen and app drawer.
 - Added helpful empty-state shortcuts across Tracker and Insights, automatic screen refreshing when switching tabs, and extra edge-case safeguards for numbers and dates.
 - Fixed in-app update version numbering so newer releases are always detected and install smoothly.

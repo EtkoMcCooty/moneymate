@@ -1,7 +1,7 @@
 name: moneymate
 description: "MoneyMate - Personal finance tracker replacing rigid spreadsheets with interactive tracking and analytics."
 publish_to: "none"
-version: 0.1.0+1
+version: 0.2.0+80
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
