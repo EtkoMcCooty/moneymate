@@ -7,6 +7,7 @@ import '../../importer/views/import_spreadsheet_dialog.dart';
 import '../../shell/state/navigation_provider.dart';
 import '../../tracker/views/widgets/month_picker_sheet.dart';
 import '../models/analytics_models.dart';
+import '../services/analytics_engine_service.dart';
 import '../state/dashboard_notifier.dart';
 import 'widgets/category_breakdown_section.dart';
 import 'widgets/dashboard_kpi_cards.dart';
@@ -186,39 +187,80 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
               children: [
-                // Timeframe Selector Chips
+                // Timeframe & Individual Month Selector Chips
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
-                    children: AnalyticsTimeframe.values.map((timeframe) {
-                      final isSelected = state.selectedTimeframe == timeframe;
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 8.0),
-                        child: ChoiceChip(
-                          showCheckmark: false,
-                          label: Text(timeframe.label),
-                          labelStyle: TextStyle(
-                            fontSize: 12,
-                            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                            letterSpacing: -0.2,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(100),
-                            side: BorderSide(
-                              color: isSelected
-                                  ? Theme.of(context).colorScheme.primary
-                                  : CraftDecorations.borderSide(context).color,
+                    children: [
+                      ...AnalyticsTimeframe.values.map((timeframe) {
+                        final isSelected = !state.isMonthFiltered &&
+                            state.selectedTimeframe == timeframe;
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: ChoiceChip(
+                            showCheckmark: false,
+                            label: Text(timeframe.label),
+                            labelStyle: TextStyle(
+                              fontSize: 12,
+                              fontWeight:
+                                  isSelected ? FontWeight.w800 : FontWeight.w600,
+                              letterSpacing: -0.2,
                             ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(100),
+                              side: BorderSide(
+                                color: isSelected
+                                    ? Theme.of(context).colorScheme.primary
+                                    : CraftDecorations.borderSide(context)
+                                        .color,
+                              ),
+                            ),
+                            selected: isSelected,
+                            onSelected: (_) {
+                              ref
+                                  .read(dashboardNotifierProvider.notifier)
+                                  .setTimeframe(timeframe);
+                            },
                           ),
-                          selected: isSelected,
-                          onSelected: (_) {
-                            ref
-                                .read(dashboardNotifierProvider.notifier)
-                                .setTimeframe(timeframe);
-                          },
+                        );
+                      }),
+                      ChoiceChip(
+                        key: const Key('dashboard_month_filter_chip'),
+                        showCheckmark: false,
+                        avatar: Icon(
+                          Icons.calendar_month_rounded,
+                          size: 16,
+                          color: state.isMonthFiltered
+                              ? Theme.of(context).colorScheme.onPrimaryContainer
+                              : Theme.of(context).colorScheme.primary,
                         ),
-                      );
-                    }).toList(),
+                        label: Text(
+                          state.isMonthFiltered &&
+                                  state.filteredMonthKey != null
+                              ? AnalyticsEngineService.formatPeriodLabel(
+                                  state.filteredMonthKey!,
+                                )
+                              : 'Pick Month',
+                        ),
+                        labelStyle: TextStyle(
+                          fontSize: 12,
+                          fontWeight: state.isMonthFiltered
+                              ? FontWeight.w800
+                              : FontWeight.w600,
+                          letterSpacing: -0.2,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(100),
+                          side: BorderSide(
+                            color: state.isMonthFiltered
+                                ? Theme.of(context).colorScheme.primary
+                                : CraftDecorations.borderSide(context).color,
+                          ),
+                        ),
+                        selected: state.isMonthFiltered,
+                        onSelected: (_) => _openMonthPicker(context, state),
+                      ),
+                    ],
                   ),
                 ),
 

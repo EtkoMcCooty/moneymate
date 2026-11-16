@@ -298,5 +298,30 @@ void main() {
       expect(find.byKey(const Key('dashboard_active_filter_pill')), findsNothing);
       expect(find.text('Average'), findsOneWidget);
     });
+
+    testWidgets(
+        'Pick Month chip in filter row opens MonthPickerSheet and updates chip label',
+        (tester) async {
+      await tester.pumpWidget(buildTestApp());
+      await tester.pumpAndSettle();
+
+      final monthChip = find.byKey(const Key('dashboard_month_filter_chip'));
+      expect(monthChip, findsOneWidget);
+      expect(find.text('Pick Month'), findsOneWidget);
+
+      await tester.tap(monthChip);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(MonthPickerSheet), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('year_pill_2026')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('month_picker_month_1')));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(MonthPickerSheet), findsNothing);
+      expect(find.text('Jan 26'), findsWidgets);
+      expect(find.text('Viewing January 2026'), findsOneWidget);
+    });
   });
 }
