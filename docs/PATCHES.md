@@ -17,6 +17,7 @@
 | `2026-11-06` | `style/executive-ui-craft-redesign` | `style` | Redesigned theme and screens with executive depth (`CraftDecorations`), tactile press interactions (`TactilePress`), and tabular typography | `lib/core/theme/app_theme.dart`, `lib/core/theme/craft_decorations.dart`, `lib/core/theme/tactile_press.dart`, feature views | `b6e17f5` / `#20` (`ae0dde3`) |
 | `2026-11-11` | `chore/flutter-3-50-material-ui-upgrade` | `chore` | Migrated `package:flutter/material.dart` imports to standalone `package:material_ui/material_ui.dart` and upgraded AGP 9.1.1 / Gradle 9.3.1 for Flutter 3.50 compatibility | `pubspec.yaml`, `pubspec.lock`, all UI files in `lib/` and `test/`, Android Gradle config | `751d53e` / `955cf6b` / `936ebfb` (in `#21` `330c563`) |
 | `2026-11-15` | `fix/cd-monotonic-build-number` | `fix` | Restored monotonic Android build numbers (`github.run_number + 70`) and dynamic `pubspec.yaml` base SemVer extraction in `.github/workflows/cd.yml` after CI/CD split reset `run_number` | `.github/workflows/cd.yml`, `CHANGELOG.md`, `docs/ARCHITECTURE.md` | — |
+| `2026-11-15` | `feat/app-icon` | `feat` | Added the Layered Cards launcher icon across Android Adaptive/legacy mipmaps and iOS `AppIcon.appiconset`, plus Windows/OneDrive command-hang prevention rules | `assets/icon/app_icon.png`, Android/iOS launcher icon sets, `CHANGELOG.md`, `GEMINI.md` | `99215fa`, `83f262e` / `#27` (`5ad5a68`) |
 
 ---
 
@@ -100,3 +101,13 @@
   * `CHANGELOG.md`, `docs/ARCHITECTURE.md`, `docs/PATCHES.md` — Documented monotonic release numbering behaviour.
 * **Verification:** `flutter analyze` and `flutter test` passed; workflow syntax and tag/build logic verified.
 * **Commit / PR Ref:** Recorded on `main` following PR `#25` cleanup
+
+### `2026-11-15` — `feat/app-icon` (`feat` / `docs`)
+* **Summary:** Added the MoneyMate **Layered Cards** app icon across Android (legacy mipmaps + Adaptive Icon XML/foreground/background `#0B0F15`) and iOS (`AppIcon.appiconset`), updated `CHANGELOG.md`, and documented Windows/OneDrive sandbox and test-runner hang prevention rules in `GEMINI.md`.
+* **Key Files Modified:**
+  * `assets/icon/app_icon.png` — Source 1024×1024 Layered Cards PNG asset.
+  * `android/app/src/main/res/mipmap-*/`, `mipmap-anydpi-v26/ic_launcher.xml`, `values/colors.xml` — Generated Android legacy and Adaptive launcher icon resources.
+  * `ios/Runner/Assets.xcassets/AppIcon.appiconset/` — Generated opaque 24-bit iOS launcher icon sizes.
+  * `GEMINI.md`, `CHANGELOG.md` — Recorded sandbox/test-runner hang rules and plain-language changelog entry.
+* **Verification:** `flutter analyze` (`No issues found`) and `flutter test` (`156/156 passed`).
+* **Commit / PR Ref:** `99215fa`, `83f262e` / PR `#27` (`5ad5a68`)

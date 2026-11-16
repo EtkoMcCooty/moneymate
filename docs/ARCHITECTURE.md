@@ -5,7 +5,7 @@
 > **Document Version:** 1.1  
 > **Project Tier:** Production  
 > **Status:** Approved  
-> **Last Updated:** 2026-11-14  
+> **Last Updated:** 2026-11-16  
 
 ---
 
@@ -90,6 +90,10 @@ lib/
 │       └── views/             # update_prompt_dialog.dart
 ├── app.dart                   # MaterialApp root, theme wiring & ProviderScope configuration
 └── main.dart                  # Application entry point
+
+assets/
+└── icon/
+    └── app_icon.png           # Source 1024x1024 Layered Cards launcher artwork (compiled into Android Adaptive & iOS AppIcon sets)
 ```
 
 ---
